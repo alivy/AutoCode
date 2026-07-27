@@ -71,16 +71,31 @@ internal static partial class IncrementalValuesProviderExtensions
     /// <param name="mappers">The mappers.</param>
     public static void EmitMapperSource(
         this IncrementalGeneratorInitializationContext context,
-        IncrementalValuesProvider<MapperNode> mappers
+        IncrementalValuesProvider<MapperSource> mappers
     )
     {
         context.RegisterImplementationSourceOutput(
             mappers,
             static (spc, mapper) =>
             {
-                var mapperText = mapper.Body.ToFullString();
-                spc.AddSource(mapper.FileName, SourceText.From(mapperText, Encoding.UTF8));
+                spc.AddSource(mapper.FileName, SourceText.From(mapper.SourceText, Encoding.UTF8));
             }
         );
     }
+}
+
+/// <summary>
+/// 映射器源代码信息
+/// </summary>
+internal sealed class MapperSource
+{
+    /// <summary>
+    /// 文件名
+    /// </summary>
+    public string FileName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// 源代码文本
+    /// </summary>
+    public string SourceText { get; set; } = string.Empty;
 }

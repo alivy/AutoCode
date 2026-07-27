@@ -6,22 +6,28 @@
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<!--打Nuget包信息-->
 		<PackageId>AM.AutoCode</PackageId>
-		<!--旧版本包信息-->
-		<!--<PackageId>AutoCodeGenerator</PackageId>-->
-		<!--<PackageVersion>2.1.1</PackageVersion>-->
-		<Version>1.1.2</Version>
+		<Version>1.2.0</Version>
 		<Company>AMiao</Company>
 		<Authors>AMiao</Authors>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<Description>自动生成代码生成扩展</Description>
-		<Summary>自动生成代码生成扩展</Summary>
-		<copyright>Copyright © amiao 2023</copyright>
+		<Description>自动代码生成扩展 - 包含接口生成器、模板生成器和对象映射生成器</Description>
+		<Summary>自动代码生成扩展</Summary>
+		<copyright>Copyright © AMiao 2024</copyright>
 		<language>zh-Hans-CN</language>
 		<Configurations>Debug;Release;Publish</Configurations>
 		<PackageIcon>Icon.png</PackageIcon>
 		<RepositoryUrl>https://gitee.com/miaolove/auto-code</RepositoryUrl>
 		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
 		<PackageProjectUrl>https://gitee.com/miaolove/auto-code</PackageProjectUrl>
+		<!--标记为开发依赖，不会传递到运行时依赖-->
+		<DevelopmentDependency>true</DevelopmentDependency>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+	</PropertyGroup>
+
+	<!-- 解决方案目录定义，解决独立构建时 SolutionDir 为 Undefined 的问题 -->
+	<PropertyGroup>
+		<SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">$(MSBuildThisFileDirectory)../</SolutionDir>
+		<NugetOutputPath>$(SolutionDir).nuget\</NugetOutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -35,26 +41,16 @@
 		<Folder Include="NugetPackage\lib\netstandard2.1\" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <None Update="init.ps1">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
-
-	<!--<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
-	</ItemGroup>-->
-	<!--生成前事件-->
-	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+	<!--生成前事件：仅在 Publish 配置时执行，发布所有生成器和模型到 NugetPackage 目录 -->
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)' == 'Publish'">
 		<Exec Command="dotnet publish ../AutoCodeGenerator/AutoCode.SourceGenerator.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.XmlTemplate.SourceGenerator/AutoCode.DotTemplate.SourceGenerator.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
+		<Exec Command="dotnet publish ../AutoCode.Map/AutoCode.Map.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.Model/AutoCode.Model.csproj -c Release -o NugetPackage/lib/netstandard2.1" />
 	</Target>
-	<!--生成后事件,以下为自定义打Nuget包命令-->
-	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="IF NOT $(ConfigurationName) == Publish  EXIT /B 0  DEL $(SolutionDir).nuget\$(ProjectName)*.nupkg 		  &#xD;&#xA;		  dotnet pack $(ProjectDir)$(ProjectName).csproj --no-build -c Publish -o $(SolutionDir).nuget" />
+
+	<!--生成后事件：仅在 Publish 配置时打包 Nuget -->
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Publish'">
+		<Exec Command="if not exist &quot;$(NugetOutputPath)&quot; mkdir &quot;$(NugetOutputPath)&quot;&#xD;&#xA;dotnet pack $(ProjectDir)$(ProjectName).csproj --no-build -c Publish -o &quot;$(NugetOutputPath)&quot;" />
 	</Target>
 </Project>

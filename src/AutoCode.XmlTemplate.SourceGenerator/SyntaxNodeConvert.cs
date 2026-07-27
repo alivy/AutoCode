@@ -282,6 +282,11 @@ namespace AutoCode.XmlTemplate.SourceGenerator
                     {
                         Usings.AddRange(namespaceDeclaration.Usings);
                     }
+                    else if (parent is FileScopedNamespaceDeclarationSyntax fileScopedNamespace)
+                    {
+                        // 支持 C# 10+ 文件范围命名空间
+                        Usings.AddRange(fileScopedNamespace.Usings);
+                    }
                     else if (parent is CompilationUnitSyntax compilationUnit)
                     {
                         Usings.AddRange(compilationUnit.Usings);

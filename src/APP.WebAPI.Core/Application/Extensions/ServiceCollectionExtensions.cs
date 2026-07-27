@@ -1,6 +1,6 @@
 ﻿using APP.WebAPI.Core.Application;
 using Microsoft.AspNetCore.Builder;
-namespace LDM.Framework.Application
+namespace APP.WebAPI.Core.Application
 {
 
     public static class ServiceCollectionExtensions

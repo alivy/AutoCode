@@ -1,6 +1,5 @@
 ﻿using AutoCode.XmlTemplate.SourceGenerator;
 using DotLiquid;
-using Jint.Runtime;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System;

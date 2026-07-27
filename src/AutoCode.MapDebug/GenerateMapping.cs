@@ -37,16 +37,27 @@ namespace AutoCode.MapDebug
                     {
                         if (IsListType(nestedType, out var listItemType))
                         {
-                            sb.AppendLine($"            if (source.{member.Name} != null)");
-                            sb.AppendLine($"            {{");
-                            sb.AppendLine($"                target.{member.Name} = new List<{listItemType.Name}>();");
-                            sb.AppendLine($"                foreach (var item in source.{member.Name})");
-                            sb.AppendLine($"                {{");
-                            sb.AppendLine($"                    var newItem = new {listItemType.Name}();");
-                            sb.AppendLine($"                    item.CopyTo(newItem);");
-                            sb.AppendLine($"                    target.{member.Name}.Add(newItem);");
-                            sb.AppendLine($"                }}");
-                            sb.AppendLine($"            }}");
+                            // 检查列表元素类型是否为简单类型
+                            if (IsSimpleType(listItemType))
+                            {
+                                // 简单类型直接赋值
+                                sb.AppendLine($"            if (source.{member.Name} != null)");
+                                sb.AppendLine($"            {{");
+                                sb.AppendLine($"                target.{member.Name} = new List<{listItemType.Name}>();");
+                                sb.AppendLine($"                foreach (var item in source.{member.Name})");
+                                sb.AppendLine($"                {{");
+                                sb.AppendLine($"                    target.{member.Name}.Add(item);");
+                                sb.AppendLine($"                }}");
+                                sb.AppendLine($"            }}");
+                            }
+                            else
+                            {
+                                // 复杂类型使用直接赋值避免跨程序集 CopyTo 缺失
+                                sb.AppendLine($"            if (source.{member.Name} != null)");
+                                sb.AppendLine($"            {{");
+                                sb.AppendLine($"                target.{member.Name} = new List<{listItemType.Name}>(source.{member.Name});");
+                                sb.AppendLine($"            }}");
+                            }
                         }
                         else
                         {

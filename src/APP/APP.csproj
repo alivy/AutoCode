@@ -2,19 +2,15 @@
 
 	<PropertyGroup>
 		<OutputType>Exe</OutputType>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
 		<Configurations>Debug;Release</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="AM.AutoCode" Version="1.1.1" />
-	</ItemGroup>
-	<ItemGroup>
-		<!--<ProjectReference Include="..\AutoCode.Extensions.SourceGenerator\AutoCode.SourceGenerator.Extensions.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\AutoCodeGenerator\AutoCode.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
-		<ProjectReference Include="..\AutoCodeGenerator\AutoCode.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />-->
 	</ItemGroup>
 
 

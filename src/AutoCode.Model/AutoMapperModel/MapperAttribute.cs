@@ -1,7 +1,6 @@
 ﻿using AutoCode.Model.AutoMapperModel;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
 
 namespace AutoCode.Model.AutoMapperModel
@@ -10,7 +9,6 @@ namespace AutoCode.Model.AutoMapperModel
     /// 将分部类标记为映射器
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    [Conditional("MAPPERLY_ABSTRACTIONS_SCOPE_RUNTIME")]
     public class MapperAttribute : Attribute
     {
         /// <summary>

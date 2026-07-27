@@ -1,69 +1,72 @@
 ﻿using System.Collections.Generic;
-using System.Text;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis;
+using System.Text;
 
 namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
 {
-    public class InterfaceBuilder
+    /// <summary>
+    /// 接口代码构建器
+    /// </summary>
+    internal static class InterfaceBuilder
     {
-
         /// <summary>
-        /// 构建接口字符串
+        /// 构建接口源代码字符串
         /// </summary>
-        /// <param name="baseClassInfo"></param>
-        /// <param name="publicMethods"></param>
-        /// <returns></returns>
-        public static string BuilderInterfaceStr(BaseCSInfo baseClassInfo,
-              IEnumerable<MethodDeclarationSyntax> publicMethods)
+        public static string BuildInterface(InterfaceSpec spec)
         {
-            StringBuilder strBuilder = new StringBuilder();
-            IEnumerable<UsingDirectiveSyntax> usingDirectives = baseClassInfo.UsingDirectives;
-            NamespaceDeclarationSyntax nameSpace = baseClassInfo.NamespaceDeclaration;
-            ClassDeclarationSyntax classTo = baseClassInfo.ClassDeclarations;
-            BaseCSInfo.InterfaceAttributeInfo InterfaceInfo = baseClassInfo.InterfaceInfo;
-            var interfaceName = (InterfaceInfo != null && !string.IsNullOrEmpty(InterfaceInfo.InterfaceName)) ?
-                InterfaceInfo.InterfaceName : $"I{classTo.Identifier}";
+            var sb = new StringBuilder();
 
-            var usingStrs = new HashSet<string>();
-            foreach (UsingDirectiveSyntax usingDirective in usingDirectives)
+            // 生成 using 指令
+            foreach (var ns in spec.Usings)
             {
-                var usingName = usingDirective.Name.ToString();
-                if (!usingName.Contains("global::") && !usingStrs.Contains(usingName))
-                {
-                    usingStrs.Add(usingName);
-                }
+                if (!string.IsNullOrEmpty(ns))
+                    sb.AppendLine($"using {ns};");
             }
-            foreach (var usingStr in usingStrs)
-            {
-                strBuilder.AppendLine($"using {usingStr};");
-            }
-            strBuilder.AppendLine($"namespace {nameSpace.Name.GetText()}");
-            strBuilder.AppendLine("{");
-            strBuilder.AppendLine($"\tpublic  interface {interfaceName}");
-            strBuilder.AppendLine("\t{");
-            if (publicMethods != null)
-            {
-                foreach (MethodDeclarationSyntax method in publicMethods)
-                {
-                    // 输出方法参数
-                    string parameterStr = string.Empty;
-                    var parameters = method.ParameterList?.Parameters
-                         .Where(parameter => parameter.Kind() == SyntaxKind.Parameter)
-                         .Select(parameter => parameter);
-                    if (parameters != null)
-                    {
-                        parameterStr = string.Join(", ", parameters.Select(parameter => $"{parameter.Type} {parameter.Identifier}"));
-                    }
 
-                    strBuilder.AppendLine($"\t\t public  {method.ReturnType} {method.Identifier}({(string.IsNullOrWhiteSpace(parameterStr) ? "" : parameterStr)}); ");
-                }
+            if (sb.Length > 0)
+                sb.AppendLine();
+
+            // 生成命名空间
+            if (!string.IsNullOrEmpty(spec.NamespaceName))
+            {
+                sb.AppendLine($"namespace {spec.NamespaceName}");
+                sb.AppendLine("{");
             }
-            strBuilder.AppendLine("\t}");
-            strBuilder.AppendLine("}");
-            return strBuilder.ToString();
+
+            var indent = string.IsNullOrEmpty(spec.NamespaceName) ? "" : "    ";
+            sb.AppendLine($"{indent}public interface {spec.InterfaceName}");
+            sb.AppendLine($"{indent}{{");
+
+            // 生成属性签名
+            foreach (var property in spec.Properties)
+            {
+                var accessors = new List<string>();
+                if (property.HasGetter) accessors.Add("get");
+                if (property.HasSetter) accessors.Add("set");
+                var accessorList = string.Join("; ", accessors);
+                sb.AppendLine($"{indent}    {property.Type} {property.Name} {{ {accessorList}; }}");
+            }
+
+            if (spec.Properties.Count > 0 && spec.Methods.Count > 0)
+                sb.AppendLine();
+
+            // 生成方法签名
+            foreach (var method in spec.Methods)
+            {
+                var parameters = method.Parameters.Count > 0
+                    ? string.Join(", ", method.Parameters.Select(p => $"{p.Type} {p.Name}"))
+                    : string.Empty;
+
+                var typeParams = method.TypeParameters ?? string.Empty;
+                sb.AppendLine($"{indent}    {method.ReturnType} {method.Name}{typeParams}({parameters});");
+            }
+
+            sb.AppendLine($"{indent}}}");
+
+            if (!string.IsNullOrEmpty(spec.NamespaceName))
+                sb.AppendLine("}");
+
+            return sb.ToString();
         }
     }
 }
