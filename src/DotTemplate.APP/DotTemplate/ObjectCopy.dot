@@ -1,0 +1,22 @@
+﻿{% for us in Usings %}
+{{ us.DefName }}
+{% endfor %}
+namespace {{NameSpace}}
+{
+    {% for csRemark in Remarks %}
+    {{ csRemark.DefName }}
+    {% endfor %}
+	{{Modifier }} class {{DefName}}Copy {% if Inherits != null %}:{% endif %}  {% for Inherit in Inherits %} {{ Inherit.DefName }}  {% endfor %}
+	{
+		{% for mth in Methods %}
+	    {% for mthRemark in mth.Remarks %}
+		{{ mthRemark.DefName }}
+	    {% endfor %}
+		{{mth.Modifier}} void {{mth.DefName}}Copy()
+		{
+		   var baseClass =new {{DefName}}();
+		   return;
+		}
+	    {% endfor %}
+	}
+}

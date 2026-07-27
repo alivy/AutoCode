@@ -1,0 +1,15 @@
+﻿{% for us in Usings %} using {{  us.DefName }};
+{% endfor %}
+namespace {{NameSpace}} {
+    {% for csRemark in Remarks %} {{ csRemark }}{% endfor %}
+	{{Modifier }} class {{DefName}}Caller 
+	{
+        {% for mth in Methods %}
+		{% for mthRemark in mth.Remarks %}{{ mthRemark }}{% endfor %}
+		{{mth.Modifier}} {{mth.Type}} {{mth.DefName}}({% for mthParameter in mth.Parameters %}{{mthParameter.Type}} {{mthParameter.DefName}}{% if forloop.last != true %},{% endif %}{% endfor %})
+		{
+		   {% if mth.Type != 'void' %} return {% endif %}{{DefName}}.{{mth.DefName}}({% for mthParameter in mth.Parameters %}{{mthParameter.DefName}}{% if forloop.last != true %},{% endif %}{% endfor %});
+		}
+		{% endfor %}
+	}
+}

@@ -1,0 +1,77 @@
+{
+  "Usings": [
+    {
+      "DefName": "AutoCode.Model"
+    },
+    {
+      "DefName": "AutoCode.Model.InterfaceAttribute"
+    },
+    {
+      "DefName": "Models"
+    },
+    {
+      "DefName": "System.ComponentModel"
+    }
+  ],
+  "NameSpace": "DotTemplate.APP\r\n",
+  "Modifier": "public",
+  "DefName": "DotTemplateS4",
+  "ClassPath": "F:\\AmiaoCode\\auto-code\\src\\DotTemplate.APP",
+  "Remarks": [
+    "/// <summary>\r\n    /// 指定DotTemplate参数1相对路径模板\r\n    /// 指定DotTemplate参数2相对路径生成文件，当标记为$Source.cs则生成内存文件\r\n    /// 指定DotTemplate参数3生成文件名称\r\n    /// </summary>\r\n"
+  ],
+  "Inherits": [],
+  "Attributes": [
+    {
+      "DefName": "DotTemplate",
+      "Parameters": [
+        {
+          "Type": "AttributeArgumentSyntax",
+          "DefName": "DotTemplate/Template_Caller.dot"
+        },
+        {
+          "Type": "AttributeArgumentSyntax",
+          "DefName": "$Source.cs"
+        },
+        {
+          "Type": "AttributeArgumentSyntax",
+          "DefName": "{{DefName}}Caller.cs"
+        }
+      ]
+    }
+  ],
+  "Methods": [
+    {
+      "Modifier": "public static",
+      "DefName": "BookingQueryV",
+      "Type": "int",
+      "Remarks": [
+        "/// <summary>\r\n        /// 订单查询\r\n        /// </summary>\r\n        /// <param name=\"str\"></param>\r\n        /// <param name=\"num2\"></param>\r\n        /// <returns></returns>\r\n"
+      ],
+      "Parameters": [
+        {
+          "Type": "string",
+          "DefName": "str"
+        },
+        {
+          "Type": "int",
+          "DefName": "num2"
+        }
+      ]
+    },
+    {
+      "Modifier": "internal static",
+      "DefName": "CacheQuery",
+      "Type": "string",
+      "Remarks": [],
+      "Parameters": [
+        {
+          "Type": "string",
+          "DefName": "str"
+        }
+      ]
+    }
+  ],
+  "Fileds": [],
+  "Propertys": []
+}

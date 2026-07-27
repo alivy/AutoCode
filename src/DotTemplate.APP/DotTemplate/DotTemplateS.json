@@ -1,0 +1,78 @@
+{
+  "Usings": [
+    {
+      "DefName": "AutoCode.Model"
+    },
+    {
+      "DefName": "AutoCode.Model.InterfaceAttribute"
+    },
+    {
+      "DefName": "Models"
+    },
+    {
+      "DefName": "System.ComponentModel"
+    },
+    {
+      "DefName": "AutoCode.Model"
+    },
+    {
+      "DefName": "AutoCode.Model.InterfaceAttribute"
+    },
+    {
+      "DefName": "Models"
+    },
+    {
+      "DefName": "System.ComponentModel"
+    },
+    {
+      "DefName": "AutoCode.Model"
+    },
+    {
+      "DefName": "AutoCode.Model.InterfaceAttribute"
+    },
+    {
+      "DefName": "Models"
+    },
+    {
+      "DefName": "System.ComponentModel"
+    }
+  ],
+  "NameSpace": "DotTemplate.APP\r\n",
+  "Modifier": "public",
+  "DefName": "DotTemplateS",
+  "ClassPath": "F:\\AmiaoCode\\auto-code\\src\\DotTemplate.APP",
+  "Remarks": [
+    "/// <summary>\r\n    /// 指定DotTemplate参数1相对路径模板\r\n    /// 指定DotTemplate参数2相对路径生成文件，当标记为$Source.cs则生成内存文件\r\n    /// 指定DotTemplate参数3生成文件名称\r\n    /// </summary>\r\n"
+  ],
+  "Inherits": [],
+  "Attributes": [
+    {
+      "DefName": "DotTemplate",
+      "Parameters": [
+        {
+          "Type": "AttributeArgumentSyntax",
+          "DefName": "DotTemplate/Template_Caller.dot"
+        }
+      ]
+    }
+  ],
+  "Methods": [],
+  "Fileds": [],
+  "Propertys": [
+    {
+      "Modifier": "public",
+      "DefName": "Id",
+      "Type": "int"
+    },
+    {
+      "Modifier": "public",
+      "DefName": "people",
+      "Type": "People"
+    },
+    {
+      "Modifier": "public",
+      "DefName": "address",
+      "Type": "List<Address>"
+    }
+  ]
+}

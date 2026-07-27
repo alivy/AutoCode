@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<Nullable>enable</Nullable>
+		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+		<!--打Nuget包信息-->
+		<PackageId>AM.AutoCode</PackageId>
+		<!--旧版本包信息-->
+		<!--<PackageId>AutoCodeGenerator</PackageId>-->
+		<!--<PackageVersion>2.1.1</PackageVersion>-->
+		<Version>1.1.2</Version>
+		<Company>AMiao</Company>
+		<Authors>AMiao</Authors>
+		<requireLicenseAcceptance>false</requireLicenseAcceptance>
+		<Description>自动生成代码生成扩展</Description>
+		<Summary>自动生成代码生成扩展</Summary>
+		<copyright>Copyright © amiao 2023</copyright>
+		<language>zh-Hans-CN</language>
+		<Configurations>Debug;Release;Publish</Configurations>
+		<PackageIcon>Icon.png</PackageIcon>
+		<RepositoryUrl>https://gitee.com/miaolove/auto-code</RepositoryUrl>
+		<GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+		<PackageProjectUrl>https://gitee.com/miaolove/auto-code</PackageProjectUrl>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<None Include="Icon.png" PackagePath="\" Pack="True" />
+		<None Include="NugetPackage\tools\*.*" PackagePath="tools" Pack="true" />
+		<None Include="NugetPackage\lib\netstandard2.1\**" PackagePath="lib\netstandard2.1" Pack="true" />
+		<None Include="NugetPackage\analyzers\dotnet\cs\**" PackagePath="analyzers\dotnet\cs" Pack="true" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Folder Include="NugetPackage\lib\netstandard2.1\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="init.ps1">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+	<!--<ItemGroup>
+		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+	</ItemGroup>-->
+	<!--生成前事件-->
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+		<Exec Command="dotnet publish ../AutoCodeGenerator/AutoCode.SourceGenerator.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
+		<Exec Command="dotnet publish ../AutoCode.XmlTemplate.SourceGenerator/AutoCode.DotTemplate.SourceGenerator.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
+		<Exec Command="dotnet publish ../AutoCode.Model/AutoCode.Model.csproj -c Release -o NugetPackage/lib/netstandard2.1" />
+	</Target>
+	<!--生成后事件,以下为自定义打Nuget包命令-->
+	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
+		<Exec Command="IF NOT $(ConfigurationName) == Publish  EXIT /B 0  DEL $(SolutionDir).nuget\$(ProjectName)*.nupkg 		  &#xD;&#xA;		  dotnet pack $(ProjectDir)$(ProjectName).csproj --no-build -c Publish -o $(SolutionDir).nuget" />
+	</Target>
+</Project>

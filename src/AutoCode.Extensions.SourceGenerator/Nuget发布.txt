@@ -1,0 +1,12 @@
+﻿
+打包发布命令：
+
+IF NOT $(ConfigurationName) == Publish  EXIT /B 0  
+DEL $(SolutionDir).nuget\$(ProjectName)*.nupkg 		
+dotnet pack $(ProjectDir)$(ProjectName).csproj --no-build -c Publish -o $(SolutionDir).nuget
+
+
+上传命令,会发布Nuget
+nuget push $(SolutionDir).nuget\$(ProjectName)*.nuget YOUR_NUGET_APIKEY_HERE -Source https://api.nuget.org/v3/index.json
+
+Nuget APIKey：YOUR_NUGET_APIKEY_HERE
