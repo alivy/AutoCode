@@ -48,6 +48,9 @@
 		<Exec Command="dotnet publish ../AutoCode.Map/AutoCode.Map.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.Analyzers/AutoCode.Analyzers.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.DependencyInjection/AutoCode.DependencyInjection.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
+		<Exec Command="dotnet publish ../AutoCode.Dto/AutoCode.Dto.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
+		<Exec Command="dotnet publish ../AutoCode.Validation/AutoCode.Validation.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
+		<Exec Command="dotnet publish ../AutoCode.WebApi/AutoCode.WebApi.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.Model/AutoCode.Model.csproj -c Release -o NugetPackage/lib/netstandard2.1" />
 	</Target>
 
