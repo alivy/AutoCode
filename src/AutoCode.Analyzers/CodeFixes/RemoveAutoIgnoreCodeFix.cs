@@ -64,7 +64,9 @@ namespace AutoCode.Analyzers.CodeFixes
                         var name = a.Name is IdentifierNameSyntax id
                             ? id.Identifier.Text
                             : a.Name.ToString();
-                        return name == "AutoIgnore" || name == "AutoIgnoreAttribute";
+                        // 支持短名称和完全限定名称
+                        return name == "AutoIgnore" || name == "AutoIgnoreAttribute"
+                            || name.EndsWith(".AutoIgnore") || name.EndsWith(".AutoIgnoreAttribute");
                     });
 
                 if (autoIgnoreAttr != null)
