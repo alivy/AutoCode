@@ -53,6 +53,28 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
             // 生成方法签名
             foreach (var method in spec.Methods)
             {
+                // 输出 XML 文档注释
+                if (!string.IsNullOrEmpty(method.XmlDoc))
+                {
+                    var docLines = method.XmlDoc.Split('\n');
+                    sb.AppendLine($"{indent}    /// <summary>");
+                    foreach (var line in docLines)
+                    {
+                        var trimmed = line.Trim();
+                        if (trimmed.StartsWith("<summary>") || trimmed.StartsWith("</summary>"))
+                            continue;
+                        if (trimmed.StartsWith("<param") || trimmed.StartsWith("<returns"))
+                        {
+                            sb.AppendLine($"{indent}    /// {trimmed}");
+                        }
+                        else if (trimmed.Length > 0)
+                        {
+                            sb.AppendLine($"{indent}    /// {trimmed}");
+                        }
+                    }
+                    sb.AppendLine($"{indent}    /// </summary>");
+                }
+
                 var parameters = method.Parameters.Count > 0
                     ? string.Join(", ", method.Parameters.Select(p => $"{p.Type} {p.Name}"))
                     : string.Empty;

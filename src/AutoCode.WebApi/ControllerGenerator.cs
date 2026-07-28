@@ -109,6 +109,7 @@ namespace AutoCode.WebApi
             var indent = string.IsNullOrEmpty(namespaceName) ? "" : "    ";
 
             sb.AppendLine($"{indent}[ApiController]");
+            sb.AppendLine($"{indent}[Produces(\"application/json\")]");
             if (!string.IsNullOrEmpty(routePrefix))
                 sb.AppendLine($"{indent}[Route(\"{routePrefix}\")]");
             else
@@ -139,6 +140,18 @@ namespace AutoCode.WebApi
                     sb.AppendLine($"{indent}    [{httpMethod}(\"{route}\")]");
                 else
                     sb.AppendLine($"{indent}    [{httpMethod}]");
+
+                // Swagger 响应类型注解
+                if (isVoid)
+                {
+                    sb.AppendLine($"{indent}    [ProducesResponseType(200)]");
+                    sb.AppendLine($"{indent}    [ProducesResponseType(400)]");
+                }
+                else
+                {
+                    sb.AppendLine($"{indent}    [ProducesResponseType(typeof({returnType}), 200)]");
+                    sb.AppendLine($"{indent}    [ProducesResponseType(400)]");
+                }
 
                 // 方法签名
                 var parameters = method.Parameters

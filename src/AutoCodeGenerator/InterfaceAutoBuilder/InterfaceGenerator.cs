@@ -146,11 +146,19 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
         }
 
         /// <summary>
-        /// 获取类的公共方法（排除标记了 [AutoIgnore] 的方法），支持泛型
+        /// 获取类的公共方法（排除 [AutoIgnore]），支持泛型、异步、XML 文档、Nullable
         /// </summary>
         private static IReadOnlyList<MethodSpec> GetPublicMethods(INamedTypeSymbol classSymbol)
         {
             var methods = new List<MethodSpec>();
+
+            // Nullable 感知的类型显示格式
+            var nullableFormat = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+                    | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
             foreach (var member in classSymbol.GetMembers())
             {
@@ -163,29 +171,79 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
                 if (HasAutoIgnoreAttribute(method))
                     continue;
 
-                // 构建泛型类型参数
+                // 泛型类型参数
                 string? typeParameters = null;
                 if (method.IsGenericMethod && method.TypeParameters.Length > 0)
                 {
                     typeParameters = "<" + string.Join(", ", method.TypeParameters.Select(t => t.Name)) + ">";
                 }
 
+                // 异步检测: Task / Task<T> / ValueTask / ValueTask<T>
+                var isAsync = IsAsyncReturnType(method.ReturnType);
+
+                // XML 文档注释提取
+                var xmlDoc = ExtractXmlDoc(method);
+
                 var parameters = new List<ParameterSpec>();
                 foreach (var param in method.Parameters)
                 {
                     parameters.Add(new ParameterSpec(
-                        param.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        param.Type.ToDisplayString(nullableFormat),
                         param.Name));
                 }
 
                 methods.Add(new MethodSpec(
                     method.Name,
-                    method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    method.ReturnType.ToDisplayString(nullableFormat),
                     parameters,
-                    typeParameters));
+                    typeParameters,
+                    xmlDoc,
+                    isAsync));
             }
 
             return methods;
+        }
+
+        /// <summary>
+        /// 检测返回类型是否为异步类型 (Task/ValueTask)
+        /// </summary>
+        private static bool IsAsyncReturnType(ITypeSymbol returnType)
+        {
+            if (returnType is not INamedTypeSymbol namedType)
+                return false;
+
+            var fullName = namedType.OriginalDefinition.ToDisplayString();
+            return fullName == "System.Threading.Tasks.Task"
+                || fullName == "System.Threading.Tasks.Task<T>"
+                || fullName == "System.Threading.Tasks.ValueTask"
+                || fullName == "System.Threading.Tasks.ValueTask<T>";
+        }
+
+        /// <summary>
+        /// 从方法的语法节点提取 XML 文档注释
+        /// </summary>
+        private static string? ExtractXmlDoc(IMethodSymbol method)
+        {
+            if (method.DeclaringSyntaxReferences.Length == 0)
+                return null;
+
+            var syntax = method.DeclaringSyntaxReferences[0].GetSyntax();
+            var docTrivia = syntax.GetLeadingTrivia()
+                .FirstOrDefault(t => t.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia)
+                    || t.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia));
+
+            if (docTrivia.IsKind(SyntaxKind.None))
+                return null;
+
+            // 清理文档注释：移除 /// 前缀，保留内容
+            var lines = docTrivia.ToString()
+                .Split(new[] { "\r\n", "\n" }, System.StringSplitOptions.None)
+                .Select(line => line.TrimStart())
+                .Where(line => line.Length > 0)
+                .Select(line => line.StartsWith("///") ? line.Substring(3).TrimStart() : line)
+                .ToList();
+
+            return lines.Count > 0 ? string.Join("\n", lines) : null;
         }
 
         /// <summary>
@@ -194,6 +252,13 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
         private static IReadOnlyList<PropertySpec> GetPublicProperties(INamedTypeSymbol classSymbol)
         {
             var properties = new List<PropertySpec>();
+
+            var nullableFormat = new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+                    | SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
             foreach (var member in classSymbol.GetMembers())
             {
@@ -208,7 +273,7 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
 
                 properties.Add(new PropertySpec(
                     property.Name,
-                    property.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    property.Type.ToDisplayString(nullableFormat),
                     property.GetMethod != null,
                     property.SetMethod != null));
             }

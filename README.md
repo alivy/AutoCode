@@ -1,6 +1,6 @@
 # AutoCode
 
-基于 Roslyn IIncrementalGenerator 的 C# 编译时代码生成工具集，提供 **7 个生成器 + 3 个分析器 + 2 个代码修复 + CLI 工具**，覆盖接口生成、模板生成、对象映射、DTO 生成、验证代码、API Controller、依赖注入注册等场景。
+基于 Roslyn IIncrementalGenerator 的 C# 编译时代码生成工具集，提供 **10 个生成器 + 5 个分析器 + 2 个代码修复 + CLI 工具**，覆盖接口生成、模板生成、对象映射、DTO、验证、Controller、DI 注册、测试桩、日志装饰器、CRUD 一键生成等场景。
 
 ## 核心特性
 
@@ -8,13 +8,16 @@
 
 | 生成器 | 特性标记 | 功能 |
 |--------|----------|------|
-| **InterfaceGenerator** | `[AutoInterface]` | 自动从类提取公共方法、属性、泛型方法生成接口 |
+| **InterfaceGenerator** | `[AutoInterface]` | 自动从类提取公共方法、属性、泛型方法生成接口（Async 感知 + XML 文档继承 + Nullable 感知） |
 | **DotTemplateGenerator** | `[DotTemplate]` | 基于 DotLiquid 模板引擎二次生成代码 |
 | **MapperGenerator** | `[Mapper]` | 自动生成对象属性复制的 CopyTo 扩展方法 |
 | **DtoGenerator** | `[AutoDTO]` | 从实体类自动生成 DTO + FromEntity/ToEntity 方法 |
 | **ValidationGenerator** | `[AutoValidator]` | 根据 DataAnnotations 生成编译时验证代码 |
-| **ControllerGenerator** | `[AutoController]` | 从 Service 类自动生成 RESTful API Controller |
+| **ControllerGenerator** | `[AutoController]` | 从 Service 类自动生成 RESTful API Controller（Swagger 注解） |
 | **DependencyInjectionGenerator** | `IScoped/ISingleton/ITransient` | 编译时 DI 注册，替代运行时反射扫描 |
+| **TestGenerator** | `[AutoTest]` | 自动生成 xUnit 测试桩（Arrange-Act-Assert 模式） |
+| **LogDecoratorGenerator** | `[AutoLog]` | 自动生成日志装饰器（参数记录 + 耗时统计 + 异常捕获） |
+| **CrudGenerator** | `[AutoCrud]` | 一键生成 CRUD Service 接口 + 内存实现 + RESTful Controller |
 
 ### 代码分析器
 
@@ -23,6 +26,8 @@
 | **AC001** | Warning | 类实现了接口但缺少 `[AutoInterface]` | 自动添加 `[AutoInterface]` + using |
 | **AC002** | Info | `[AutoInterface]` 类的公共成员与接口不一致 | 提示同步 |
 | **AC003** | Warning | `[AutoIgnore]` 标记在非公共成员上 | 自动移除 `[AutoIgnore]` |
+| **AC004** | Warning | Controller 直接引用 DbContext/Repository 等数据层类型 | 提示通过 Service 层访问 |
+| **AC006** | Info | Service/Controller 类命名不符合约定 | 提示重命名 |
 
 ### MSBuild 配置
 
@@ -291,19 +296,25 @@ nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.n
 
 ## 技术亮点
 
-- **IIncrementalGenerator**: 7 个生成器均采用 Roslyn 增量生成器，编译性能最优
+- **IIncrementalGenerator**: 10 个生成器均采用 Roslyn 增量生成器，编译性能最优
 - **增量缓存**: InterfaceSpecComparer 防止无关变更触发重复生成
+- **Async 感知**: 接口生成器自动识别 Task<T>/ValueTask<T> 返回类型
+- **XML 文档继承**: 接口生成器自动复制方法上的 /// 注释到生成的接口
+- **Nullable 感知**: 生成的接口正确区分 string 和 string?
+- **Swagger 注解**: Controller 生成器自动添加 [ProducesResponseType]/[Produces]
 - **CreateSyntaxProvider**: 统一语法树级别特性匹配
 - **FileScopedNamespace**: 支持 C# 10+ 文件范围命名空间
 - **零文件写入**: 所有生成器仅使用 `context.AddSource`，不写磁盘
 - **NativeAOT 兼容**: 编译时 DI 注册，零运行时反射
-- **Analyzer + CodeFix**: 3 个诊断规则 + 2 个一键修复
+- **Analyzer + CodeFix**: 5 个诊断规则 + 2 个一键修复
+- **架构守护**: 分层违规检测 (AC004) + 命名规范强制 (AC006)
 - **MSBuild 配置**: 通过 .csproj 控制生成器行为
 
 ## 版本历史
 
 | 版本 | 说明 |
 |------|------|
+| 1.3.0 | 深度提效：+3 生成器 (AutoTest/AutoLog/AutoCrud)、+2 分析器 (AC004/AC006)、Async/XML Doc/Nullable/Swagger 智能化增强 |
 | 1.2.0 | 全面扩展：+4 生成器 (DTO/验证/Controller/DI)、+3 分析器、+2 CodeFix、CLI 工具、CI/CD、MSBuild 配置、23 个测试 |
 | 1.1.x | 架构重构：IIncrementalGenerator 迁移、增量缓存、泛型/属性支持 |
 | 1.0.x | ISourceGenerator 初始版本 |

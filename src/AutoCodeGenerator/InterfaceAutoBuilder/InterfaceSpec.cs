@@ -69,13 +69,20 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
         public string ReturnType { get; }
         public IReadOnlyList<ParameterSpec> Parameters { get; }
         public string? TypeParameters { get; }
+        /// <summary>XML 文档注释（原始格式）</summary>
+        public string? XmlDoc { get; }
+        /// <summary>是否为异步方法（返回 Task/ValueTask）</summary>
+        public bool IsAsync { get; }
 
-        public MethodSpec(string name, string returnType, IReadOnlyList<ParameterSpec> parameters, string? typeParameters = null)
+        public MethodSpec(string name, string returnType, IReadOnlyList<ParameterSpec> parameters,
+            string? typeParameters = null, string? xmlDoc = null, bool isAsync = false)
         {
             Name = name;
             ReturnType = returnType;
             Parameters = parameters;
             TypeParameters = typeParameters;
+            XmlDoc = xmlDoc;
+            IsAsync = isAsync;
         }
 
         public bool Equals(MethodSpec? other)
@@ -85,6 +92,8 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
             if (Name != other.Name) return false;
             if (ReturnType != other.ReturnType) return false;
             if (TypeParameters != other.TypeParameters) return false;
+            if (XmlDoc != other.XmlDoc) return false;
+            if (IsAsync != other.IsAsync) return false;
             if (Parameters.Count != other.Parameters.Count) return false;
             for (int i = 0; i < Parameters.Count; i++)
                 if (!Parameters[i].Equals(other.Parameters[i])) return false;
@@ -99,6 +108,8 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
                 hash = hash * 31 + (Name?.GetHashCode() ?? 0);
                 hash = hash * 31 + (ReturnType?.GetHashCode() ?? 0);
                 hash = hash * 31 + (TypeParameters?.GetHashCode() ?? 0);
+                hash = hash * 31 + (XmlDoc?.GetHashCode() ?? 0);
+                hash = hash * 31 + IsAsync.GetHashCode();
                 foreach (var p in Parameters) hash = hash * 31 + p.GetHashCode();
                 return hash;
             }

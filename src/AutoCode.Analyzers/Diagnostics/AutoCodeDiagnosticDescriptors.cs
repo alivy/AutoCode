@@ -54,5 +54,31 @@ namespace AutoCode.Analyzers.Diagnostics
                 DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,
                 description: "[AutoIgnore] 仅对公共成员有意义，因为非公共成员本身就不会被包含在生成的接口中。");
+
+        /// <summary>
+        /// AC004: 分层违规 - Controller 直接引用数据层类型
+        /// </summary>
+        public static readonly DiagnosticDescriptor LayerViolation =
+            new DiagnosticDescriptor(
+                "AC004",
+                "分层违规：Controller 直接引用数据层",
+                "Controller '{0}' 直接引用了数据层类型 '{1}'，应通过 Service 层访问数据",
+                DiagnosticCategories.Design,
+                DiagnosticSeverity.Warning,
+                isEnabledByDefault: true,
+                description: "Controller 层不应直接依赖 DbContext、Repository 等数据层类型，应通过 Service 层间接访问。");
+
+        /// <summary>
+        /// AC006: 命名规范不符合约定
+        /// </summary>
+        public static readonly DiagnosticDescriptor NamingConvention =
+            new DiagnosticDescriptor(
+                "AC006",
+                "命名不符合约定",
+                "类 '{0}' 的命名不符合约定，建议以 '{1}' 结尾",
+                DiagnosticCategories.Design,
+                DiagnosticSeverity.Info,
+                isEnabledByDefault: true,
+                description: "Service 类应以 Service 结尾，Controller 类应以 Controller 结尾。");
     }
 }
