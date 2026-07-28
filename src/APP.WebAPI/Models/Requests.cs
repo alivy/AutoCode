@@ -14,7 +14,7 @@ namespace APP.WebAPI.Models
     public class CreateUserRequest
     {
         [Required]
-        [MaxLength(50)]
+        [MaxLength(60)]
         public string Name { get; set; } = string.Empty;
 
         [Required]

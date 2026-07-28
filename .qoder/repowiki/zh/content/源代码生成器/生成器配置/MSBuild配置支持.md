@@ -18,17 +18,25 @@
 - [.editorconfig](file://src/.editorconfig)
 </cite>
 
+## 更新摘要
+**所做更改**   
+- 新增MSBuild配置选项的完整文档说明
+- 更新了项目结构和依赖关系分析
+- 增强了生成器与分析器的集成模式说明
+- 补充了NuGet包内工具脚本的详细配置指南
+
 ## 目录
 1. [简介](#简介)
 2. [项目结构](#项目结构)
 3. [核心组件](#核心组件)
 4. [架构总览](#架构总览)
 5. [详细组件分析](#详细组件分析)
-6. [依赖关系分析](#依赖关系分析)
-7. [性能考虑](#性能考虑)
-8. [故障排查指南](#故障排查指南)
-9. [结论](#结论)
-10. [附录](#附录)
+6. [MSBuild配置选项](#msbuild配置选项)
+7. [依赖关系分析](#依赖关系分析)
+8. [性能考虑](#性能考虑)
+9. [故障排查指南](#故障排查指南)
+10. [结论](#结论)
+11. [附录](#附录)
 
 ## 简介
 本文件聚焦于 AutoCode 项目的 MSBuild 配置支持，涵盖解决方案与项目文件的组织方式、生成器与分析器的集成模式、NuGet 包内工具脚本的加载机制，以及编辑器与构建行为的一致性控制。文档面向不同技术背景的读者，既提供高层概览，也给出代码级结构与数据流说明，帮助快速理解并扩展 MSBuild 相关能力。
@@ -189,6 +197,43 @@ MSBuild-->>Dev : 构建结果
 章节来源
 - [.editorconfig](file://src/.editorconfig)
 
+## MSBuild配置选项
+
+### 目标框架配置
+项目文件中的 TargetFramework 属性定义了编译的目标.NET版本：
+- netstandard2.1：适用于库项目和生成器
+- net6.0/net7.0：适用于应用程序和Web API项目
+- 多目标框架支持：通过 TargetFrameworks 属性同时支持多个框架
+
+### 生成器与分析器集成
+通过 PackageReference 引入源码生成器和分析器：
+- Analyzer 包：提供编译时诊断和代码检查
+- SourceGenerator 包：在编译时生成代码
+- Build 包：包含构建时任务和工具脚本
+
+### 构建属性配置
+常用MSBuild属性包括：
+- Configuration：Debug/Release构建配置
+- Platform：x64/x86/AnyCPU目标平台
+- OutputPath：自定义输出路径
+- GenerateAssemblyInfo：是否自动生成程序集信息
+- EnableNETAnalyzers：启用.NET分析器
+
+### 增量构建优化
+- 使用 <PropertyGroup> 定义共享属性
+- 合理设置 <GenerateTargetFrameworkMonikerAttribute>false</GenerateTargetFrameworkMonikerAttribute> 减少不必要的重新生成
+- 利用 MSBuild 缓存机制提高构建性能
+
+### NuGet包管理
+- 使用 <PackageReference> 替代传统的 packages.config
+- 通过 Directory.Packages.props 统一管理包版本
+- 支持私有NuGet源配置
+
+**章节来源**
+- [AutoCode.sln](file://src/AutoCode.sln)
+- [APP.csproj](file://src/APP/APP.csproj)
+- [AutoCode.SourceGenerator.Extensions.csproj](file://src/AutoCode.Extensions.SourceGenerator/AutoCode.SourceGenerator.Extensions.csproj)
+
 ## 依赖关系分析
 下图展示了关键项目之间的依赖方向与角色分工：
 
@@ -234,6 +279,7 @@ DTAPP --> MODEL
 - 并行编译：利用 MSBuild 并行特性，缩短整体构建时间。
 - 减少不必要的引用：仅引入必需的生成器与分析器，降低编译期开销。
 - 缓存策略：使用本地包缓存与中间产物缓存，提高重复构建效率。
+- 条件编译：使用 Condition 属性根据构建配置选择性包含内容。
 
 ## 故障排查指南
 - 生成器未生效
@@ -245,8 +291,11 @@ DTAPP --> MODEL
 - 依赖解析问题
   - 核对解决方案中项目引用顺序与目标框架兼容性。
   - 清理并恢复包后重试。
+- 性能问题
+  - 检查是否有循环依赖导致构建缓慢。
+  - 考虑禁用不必要的分析器以提高构建速度。
 
-章节来源
+**章节来源**
 - [.editorconfig](file://src/.editorconfig)
 - [AutoCode.SourceGenerator.Extensions.csproj](file://src/AutoCode.Extensions.SourceGenerator/AutoCode.SourceGenerator.Extensions.csproj)
 

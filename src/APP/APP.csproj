@@ -10,6 +10,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\AutoCodeGenerator\AutoCode.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\AutoCode.Analyzers\AutoCode.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
 		<ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
 	</ItemGroup>
 

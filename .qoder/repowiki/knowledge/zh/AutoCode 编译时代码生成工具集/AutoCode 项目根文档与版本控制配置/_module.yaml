@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: fc77e813-e083-4663-a3ee-62a244bbbfb7
-title: AutoCode 代码生成解决方案文档
+title: AutoCode 项目根文档与版本控制配置
 scope:
     - README.md
     - README.en.md

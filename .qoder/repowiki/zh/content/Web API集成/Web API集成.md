@@ -4,7 +4,10 @@
 **本文档引用的文件**
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
+- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
@@ -22,6 +25,13 @@
 - [appsettings.json](file://src/APP.WebAPI/appsettings.json)
 - [launchSettings.json](file://src/APP.WebAPI/Properties/launchSettings.json)
 </cite>
+
+## 更新摘要
+**所做更改**
+- 新增完整的Web API示例实现，包含UserService、UserDto和控制器生成示例
+- 更新了依赖注入和服务注册的实际应用示例
+- 增强了AutoCode生态系统在Web API中的完整工作流展示
+- 添加了用户管理功能的端到端实现示例
 
 ## 目录
 1. [简介](#简介)
@@ -47,7 +57,7 @@
 
 ## 项目结构
 本项目采用分层组织方式：
-- APP.WebAPI：Web API入口、控制器、服务、启动配置与运行设置
+- APP.WebAPI：Web API入口、控制器、服务、模型、启动配置与运行设置
 - APP.WebAPI.Core：应用核心能力，包含依赖注入扩展、应用初始化与生命周期标记接口
 - AutoCode相关模型与属性：用于驱动代码生成的元数据与特性
 - 映射模型与映射配置：行为定义与用户信息映射
@@ -58,7 +68,10 @@ graph TB
 subgraph "Web API"
 Program["Program.cs"]
 Controller["BookingController.cs"]
-Service["BookingService.cs"]
+UserService["UserService.cs"]
+UserDto["UserDto.cs"]
+UserEntity["UserEntity.cs"]
+Requests["Requests.cs"]
 Weather["WeatherForecast.cs"]
 Settings["appsettings.json"]
 Launch["launchSettings.json"]
@@ -83,7 +96,10 @@ Behavior["Behavior.cs"]
 UserInfo["UserInfo.cs"]
 end
 Program --> Controller
+Program --> UserService
 Controller --> Service
+UserService --> UserDto
+UserService --> UserEntity
 Program --> DIExt
 Program --> SvcExt
 Program --> AppCore
@@ -96,7 +112,10 @@ Service --> UserInfo
 图表来源
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
+- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
@@ -117,7 +136,10 @@ Service --> UserInfo
 章节来源
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
+- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
@@ -140,6 +162,7 @@ Service --> UserInfo
 - 应用核心初始化：集中配置中间件、日志、异常处理等通用能力
 - 控制器与服务：业务入口与实现，使用AutoCode生成的接口与映射
 - AutoCode模型与特性：驱动代码生成的元数据，包括接口生成、忽略规则、映射策略等
+- **新增** 用户管理服务：完整的用户CRUD操作示例，展示AutoCode生态系统的实际应用
 
 章节来源
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
@@ -153,6 +176,9 @@ Service --> UserInfo
 - [AutoIgnoreAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoIgnoreAttribute.cs)
 - [MapperAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapperAttribute.cs)
 - [MapPropertyAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapPropertyAttribute.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
 
 ## 架构总览
 下图展示了从请求进入ASP.NET Core管道，到控制器调用服务，再到AutoCode生成代码参与映射与处理的整体流程。
@@ -163,7 +189,7 @@ participant Client as "客户端"
 participant Kestrel as "Kestrel服务器"
 participant Middleware as "中间件管线"
 participant Controller as "BookingController"
-participant Service as "BookingService"
+participant UserService as "UserService"
 participant DI as "依赖注入容器"
 participant AutoGen as "AutoCode生成代码"
 Client->>Kestrel : HTTP请求
@@ -171,17 +197,17 @@ Kestrel->>Middleware : 进入中间件管线
 Middleware-->>Controller : 路由匹配后调用控制器
 Controller->>DI : 解析服务实例
 DI-->>Controller : 返回服务实例
-Controller->>Service : 调用业务方法
-Service->>AutoGen : 使用生成的接口/映射
-AutoGen-->>Service : 返回结果
-Service-->>Controller : 业务结果
+Controller->>UserService : 调用用户管理方法
+UserService->>AutoGen : 使用生成的接口/映射
+AutoGen-->>UserService : 返回结果
+UserService-->>Controller : 业务结果
 Controller-->>Client : HTTP响应
 ```
 
 图表来源
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
@@ -279,27 +305,78 @@ Run --> End(["应用就绪"])
 sequenceDiagram
 participant C as "BookingController"
 participant S as "BookingService"
+participant U as "UserService"
 participant G as "AutoCode生成代码"
-C->>S : 调用业务方法(参数)
+C->>S : 调用预订业务方法(参数)
 S->>G : 使用生成的接口/映射
 G-->>S : 返回映射结果
 S-->>C : 业务结果
 C-->>C : 格式化响应
+U->>G : 用户数据映射
+G-->>U : 用户DTO转换
 ```
 
 图表来源
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [MapperAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapperAttribute.cs)
 - [MapPropertyAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapPropertyAttribute.cs)
 
 章节来源
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [MapperAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapperAttribute.cs)
 - [MapPropertyAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapPropertyAttribute.cs)
+
+### 用户管理功能完整示例
+**新增** 用户管理功能展示了AutoCode生态系统的完整应用：
+
+- 用户实体模型：
+  - UserEntity：数据库实体，包含用户基本信息
+  - UserDto：数据传输对象，用于API请求和响应
+  - Requests：请求模型，包含用户操作的输入参数
+- 用户服务实现：
+  - UserService：业务逻辑层，处理用户CRUD操作
+  - 使用AutoCode生成的映射进行实体与DTO之间的转换
+  - 集成依赖注入，支持生命周期管理
+
+```mermaid
+erDiagram
+USER_ENTITY {
+int id PK
+string username
+string email
+string password
+datetime created_at
+datetime updated_at
+}
+USER_DTO {
+int id
+string username
+string email
+}
+REQUESTS {
+int user_id
+string action
+object data
+}
+USER_ENTITY ||--o{ USER_DTO : "映射"
+USER_DTO ||--o{ REQUESTS : "处理"
+```
+
+图表来源
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+
+章节来源
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
 
 ### 映射模型与AutoCode映射
 - 行为模型：
@@ -357,7 +434,7 @@ Endpoint --> Response["返回响应"]
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [AutoIgnoreAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoIgnoreAttribute.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
@@ -366,7 +443,7 @@ Endpoint --> Response["返回响应"]
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [AutoIgnoreAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoIgnoreAttribute.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
@@ -375,11 +452,15 @@ Endpoint --> Response["返回响应"]
 - 控制器依赖服务，服务依赖AutoCode生成的接口与映射
 - 依赖注入容器负责生命周期管理与实例解析
 - 应用核心与扩展方法集中配置中间件与服务注册
+- **新增** 用户管理功能展示了完整的实体-DTO-请求模型转换链
 
 ```mermaid
 graph LR
 Controller["BookingController"] --> Service["BookingService"]
+Controller --> UserService["UserService"]
 Service --> AutoGen["AutoCode生成代码"]
+UserService --> UserDto["UserDto"]
+UserService --> UserEntity["UserEntity"]
 Program["Program"] --> DIExt["依赖注入扩展"]
 Program --> SvcExt["服务集合扩展"]
 Program --> AppCore["应用核心"]
@@ -387,7 +468,9 @@ Program --> AppCore["应用核心"]
 
 图表来源
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
@@ -395,7 +478,9 @@ Program --> AppCore["应用核心"]
 
 章节来源
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
@@ -411,6 +496,10 @@ Program --> AppCore["应用核心"]
 - 映射优化：
   - 使用AutoCode生成的映射减少反射开销
   - 缓存热点映射配置，避免重复计算
+- **新增** 用户管理性能优化：
+  - DTO映射使用AutoCode生成的高性能转换器
+  - 数据库访问采用适当的查询策略
+  - 内存缓存热点用户数据
 
 [本节为通用指导，不直接分析具体文件]
 
@@ -424,6 +513,10 @@ Program --> AppCore["应用核心"]
 - 中间件问题：
   - 确认中间件注册顺序
   - 查看日志输出定位异常堆栈
+- **新增** 用户管理相关问题：
+  - 检查UserDto与UserEntity的字段映射配置
+  - 验证请求模型的验证规则
+  - 确认服务层的业务逻辑异常处理
 
 章节来源
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
@@ -431,9 +524,12 @@ Program --> AppCore["应用核心"]
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [MapperAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapperAttribute.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
 
 ## 结论
-通过AutoCode与ASP.NET Core Web API的集成，可以显著减少样板代码，提升开发效率与代码一致性。借助依赖注入的生命周期管理与中间件配置，能够构建出高内聚、低耦合、易维护的Web API服务。建议在实际项目中结合业务需求，合理设计接口与映射策略，并持续优化性能与稳定性。
+通过AutoCode与ASP.NET Core Web API的集成，可以显著减少样板代码，提升开发效率与代码一致性。借助依赖注入的生命周期管理与中间件配置，能够构建出高内聚、低耦合、易维护的Web API服务。新增的用户管理功能示例展示了AutoCode生态系统的完整应用能力，从接口定义到API端点的完整工作流。建议在实际项目中结合业务需求，合理设计接口与映射策略，并持续优化性能与稳定性。
 
 [本节为总结性内容，不直接分析具体文件]
 
@@ -443,8 +539,17 @@ Program --> AppCore["应用核心"]
   - appsettings.json：应用配置项（数据库连接、日志级别等）
 - 示例数据模型：
   - WeatherForecast：示例天气数据模型，用于演示API返回格式
+- **新增** 用户管理示例：
+  - UserEntity：用户实体模型，包含完整的用户信息字段
+  - UserDto：用户数据传输对象，用于API交互
+  - Requests：用户操作请求模型，支持多种用户管理操作
+  - UserService：用户服务实现，展示完整的CRUD操作
 
 章节来源
 - [launchSettings.json](file://src/APP.WebAPI/Properties/launchSettings.json)
 - [appsettings.json](file://src/APP.WebAPI/appsettings.json)
 - [WeatherForecast.cs](file://src/APP.WebAPI/WeatherForecast.cs)
+- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
+- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
+- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
+- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)

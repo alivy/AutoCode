@@ -10,8 +10,9 @@
 		<Company>AMiao</Company>
 		<Authors>AMiao</Authors>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<Description>自动代码生成扩展 - 包含接口生成器、模板生成器和对象映射生成器</Description>
+		<Description>自动代码生成扩展 - 包含接口生成器、模板生成器、对象映射生成器、DTO生成器、验证生成器、Controller生成器、DI注册生成器、代码分析器。编译时生成，零运行时反射，NativeAOT 兼容。</Description>
 		<Summary>自动代码生成扩展</Summary>
+		<PackageTags>source-generator;roslyn;aot;trimming;code-generation;analyzer</PackageTags>
 		<copyright>Copyright © AMiao 2024</copyright>
 		<language>zh-Hans-CN</language>
 		<Configurations>Debug;Release;Publish</Configurations>
