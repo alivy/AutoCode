@@ -1,6 +1,6 @@
 schema_version: 1
 module_path: ""
-title: AutoCode
+title: AutoCode Roslyn 代码生成解决方案
 scope: []
 source_files: []
 depends_on: []

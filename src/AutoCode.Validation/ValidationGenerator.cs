@@ -24,6 +24,7 @@ namespace AutoCode.Validation
             ["MinLength"] = "MinLength",
             ["RegularExpression"] = "RegularExpression",
             ["Email"] = "Email",
+            ["EmailAddress"] = "Email",
             ["Url"] = "Url",
             ["Compare"] = "Compare"
         };

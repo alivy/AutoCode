@@ -19,6 +19,7 @@ namespace AutoCode.WebApi
         private static readonly Dictionary<string, (string HttpMethod, string Route)> HttpMethodPrefixes =
             new Dictionary<string, (string, string)>
             {
+                ["GetAll"] = ("HttpGet", ""),
                 ["Get"] = ("HttpGet", "{id}"),
                 ["Find"] = ("HttpGet", "{id}"),
                 ["Query"] = ("HttpGet", ""),
@@ -183,6 +184,11 @@ namespace AutoCode.WebApi
 
         private static (string HttpMethod, string Route) InferHttpMethod(string methodName)
         {
+            // 先尝试精确匹配（如 GetAll, Update, Delete）
+            if (HttpMethodPrefixes.TryGetValue(methodName, out var exactMatch))
+                return exactMatch;
+
+            // 再尝试前缀匹配（如 GetById, CreateOrder）
             foreach (var kvp in HttpMethodPrefixes)
             {
                 var prefix = kvp.Key;
