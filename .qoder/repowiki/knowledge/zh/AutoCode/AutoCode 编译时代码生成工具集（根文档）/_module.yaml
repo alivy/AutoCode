@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: fc77e813-e083-4663-a3ee-62a244bbbfb7
+title: AutoCode 编译时代码生成工具集（根文档）
+scope:
+    - README.md
+    - README.en.md
+    - .gitignore
+source_files: []
+depends_on: []
+related_to: []

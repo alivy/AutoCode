@@ -1,0 +1,27 @@
+# 知识卡导出索引文件
+schema_version: 1
+locale: zh-CN
+branch: main
+nodes_managed: true
+exported_at: "2026-07-28T03:58:31Z"
+modules:
+    "":
+        dir_name: AutoCode
+        title: AutoCode
+        scope: []
+        source_files: []
+        children:
+            - fc77e813-e083-4663-a3ee-62a244bbbfb7
+        depends_on: []
+        related_to: []
+    fc77e813-e083-4663-a3ee-62a244bbbfb7:
+        dir_name: AutoCode 编译时代码生成工具集（根文档）
+        title: AutoCode 编译时代码生成工具集（根文档）
+        scope:
+            - README.md
+            - README.en.md
+            - .gitignore
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

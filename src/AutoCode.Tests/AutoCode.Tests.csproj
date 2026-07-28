@@ -14,6 +14,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="1.1.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="xunit" Version="2.5.3" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
@@ -28,6 +29,7 @@
     <ProjectReference Include="..\AutoCodeGenerator\AutoCode.SourceGenerator.csproj" />
     <ProjectReference Include="..\AutoCode.Map\AutoCode.Map.csproj" />
     <ProjectReference Include="..\AutoCode.Analyzers\AutoCode.Analyzers.csproj" />
+    <ProjectReference Include="..\AutoCode.DependencyInjection\AutoCode.DependencyInjection.csproj" />
   </ItemGroup>
 
 </Project>

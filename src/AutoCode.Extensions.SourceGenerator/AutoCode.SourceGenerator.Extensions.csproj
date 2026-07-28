@@ -47,6 +47,7 @@
 		<Exec Command="dotnet publish ../AutoCode.XmlTemplate.SourceGenerator/AutoCode.DotTemplate.SourceGenerator.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.Map/AutoCode.Map.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.Analyzers/AutoCode.Analyzers.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
+		<Exec Command="dotnet publish ../AutoCode.DependencyInjection/AutoCode.DependencyInjection.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.Model/AutoCode.Model.csproj -c Release -o NugetPackage/lib/netstandard2.1" />
 	</Target>
 
