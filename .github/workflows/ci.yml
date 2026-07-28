@@ -1,0 +1,76 @@
+name: AutoCode CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore
+      run: dotnet restore src/AutoCode.sln
+
+    - name: Build
+      run: dotnet build src/AutoCode.sln --no-restore --configuration Release
+
+    - name: Test
+      run: dotnet test src/AutoCode.sln --no-build --configuration Release --verbosity normal
+
+  pack:
+    needs: build-and-test
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore
+      run: dotnet restore src/AutoCode.sln
+
+    - name: Pack NuGet
+      run: dotnet build src/AutoCode.Extensions.SourceGenerator/AutoCode.SourceGenerator.Extensions.csproj -c Publish
+
+    - name: Upload NuGet Package
+      uses: actions/upload-artifact@v4
+      with:
+        name: nupkg
+        path: src/.nuget/*.nupkg
+
+  publish:
+    needs: pack
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Download NuGet Package
+      uses: actions/download-artifact@v4
+      with:
+        name: nupkg
+        path: src/.nuget
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Publish to NuGet
+      run: |
+        for pkg in src/.nuget/*.nupkg; do
+          dotnet nuget push "$pkg" --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+        done
