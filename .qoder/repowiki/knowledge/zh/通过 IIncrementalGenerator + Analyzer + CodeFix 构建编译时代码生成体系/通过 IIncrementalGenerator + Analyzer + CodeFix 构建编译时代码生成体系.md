@@ -1,7 +1,7 @@
 ---
-kind: design
+kind: adr
 name: 通过 IIncrementalGenerator + Analyzer + CodeFix 构建编译时代码生成体系
-source: session
+slug: adr
 category: adr
 ---
 

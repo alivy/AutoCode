@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>AutoCode.Plugins.Logging</RootNamespace>
+    <Description>AutoCode Logging 插件 - 自动生成日志装饰器（结构化日志、耗时统计、异常捕获、敏感脱敏）</Description>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoCode.Engine\AutoCode.Engine.csproj" />
+    <ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,63 @@
+{
+  "conventions": {
+    "servicePattern": "*Service",
+    "repositoryPattern": "*Repository",
+    "dtoSuffix": "Dto",
+    "autoDetectServices": true,
+    "autoDetectDtos": true,
+    "autoDetectRepositories": true,
+    "autoDetectControllers": false
+  },
+  "mapper": {
+    "methodName": "MapTo",
+    "nullHandling": "Skip",
+    "collectionMapping": "DeepCopy",
+    "generateProjection": false
+  },
+  "dto": {
+    "useRecord": false,
+    "excludeAuditFields": true
+  },
+  "webapi": {
+    "responseWrapper": true,
+    "pagination": true,
+    "versioning": "UrlSegment",
+    "version": ""
+  },
+  "validation": {
+    "generateFluentStyle": false,
+    "enableAsyncValidation": false
+  },
+  "dependencyInjection": {
+    "namespace": "AutoCode.DependencyInjection",
+    "methodName": "AddAutoDI",
+    "modulePerAssembly": false
+  },
+  "cascade": {
+    "dto": true,
+    "mapper": true,
+    "validation": true,
+    "repository": true,
+    "service": true,
+    "controller": true,
+    "tests": false,
+    "logging": false
+  },
+  "logging": {
+    "structuredLogging": true,
+    "includeOpenTelemetry": false,
+    "maskSensitive": true
+  },
+  "plugins": {
+    "interface": { "enabled": true },
+    "mapper": { "enabled": true },
+    "dto": { "enabled": true },
+    "validation": { "enabled": true },
+    "webapi": { "enabled": true },
+    "crud": { "enabled": true },
+    "dependencyInjection": { "enabled": true },
+    "testing": { "enabled": true },
+    "logging": { "enabled": true },
+    "cascade": { "enabled": true }
+  }
+}

@@ -8,14 +8,18 @@
 		<PackAsTool>true</PackAsTool>
 		<ToolCommandName>autocode</ToolCommandName>
 		<PackageId>AM.AutoCode.Cli</PackageId>
-		<Version>1.2.0</Version>
-		<Description>AutoCode CLI - 代码生成器管理工具</Description>
+		<Version>2.0.0</Version>
+		<Description>AutoCode CLI - 智能代码生成器管理工具（预览/分析/脚手架/诊断）</Description>
 		<Authors>AMiao</Authors>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AutoCode.Engine\AutoCode.Engine.csproj" />
 	</ItemGroup>
 
 </Project>

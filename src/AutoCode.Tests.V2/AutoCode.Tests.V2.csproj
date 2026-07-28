@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>AutoCode.Tests.V2</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoCode.Engine\AutoCode.Engine.csproj" />
+    <ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
+    <ProjectReference Include="..\AutoCode.Plugin.Sdk\AutoCode.Plugin.Sdk.csproj" />
+    <ProjectReference Include="..\AutoCode.Plugins.Mapper\AutoCode.Plugins.Mapper.csproj" />
+    <ProjectReference Include="..\AutoCode.Plugins.DependencyInjection\AutoCode.Plugins.DependencyInjection.csproj" />
+    <ProjectReference Include="..\AutoCode.Plugins.Validation\AutoCode.Plugins.Validation.csproj" />
+    <ProjectReference Include="..\AutoCode.Plugins.Dto\AutoCode.Plugins.Dto.csproj" />
+    <ProjectReference Include="..\AutoCode.Plugins.Interface\AutoCode.Plugins.Interface.csproj" />
+  </ItemGroup>
+
+</Project>

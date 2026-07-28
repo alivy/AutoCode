@@ -3,18 +3,27 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-28T10:33:52Z"
+exported_at: "2026-07-28T13:57:42Z"
 modules:
     "":
-        dir_name: AutoCode 编译时代码生成工具集
-        title: AutoCode 编译时代码生成工具集
+        dir_name: AutoCode 编译时代码生成框架解决方案
+        title: AutoCode 编译时代码生成框架解决方案
         scope: []
         source_files: []
         children:
-            - fc77e813-e083-4663-a3ee-62a244bbbfb7
+            - dc34a7be-7c5d-4f0c-b724-d3dd73433315
         depends_on: []
         related_to: []
-    fc77e813-e083-4663-a3ee-62a244bbbfb7:
+    dc34a7be-7c5d-4f0c-b724-d3dd73433315:
+        dir_name: AutoCode 编译时代码生成框架
+        title: AutoCode 编译时代码生成框架
+        scope: []
+        source_files: []
+        children:
+            - dc34a7be-7c5d-4f0c-b724-d3dd73433315/deb6f2ea-7b53-491b-91f5-f9fc3db6a1ea
+        depends_on: []
+        related_to: []
+    dc34a7be-7c5d-4f0c-b724-d3dd73433315/deb6f2ea-7b53-491b-91f5-f9fc3db6a1ea:
         dir_name: AutoCode 项目根文档与版本控制配置
         title: AutoCode 项目根文档与版本控制配置
         scope:

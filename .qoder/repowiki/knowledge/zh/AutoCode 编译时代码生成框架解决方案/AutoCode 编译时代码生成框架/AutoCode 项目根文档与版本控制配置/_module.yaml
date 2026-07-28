@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: dc34a7be-7c5d-4f0c-b724-d3dd73433315/deb6f2ea-7b53-491b-91f5-f9fc3db6a1ea
+title: AutoCode 项目根文档与版本控制配置
+scope:
+    - README.md
+    - README.en.md
+    - .gitignore
+source_files: []
+depends_on: []
+related_to: []

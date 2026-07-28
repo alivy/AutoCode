@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>12.0</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <RootNamespace>AutoCode.Plugins.Dto</RootNamespace>
+    <Description>AutoCode DTO 插件 - 从实体自动生成 DTO（支持 record、嵌套级联、分页、审计字段排除）</Description>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AutoCode.Engine\AutoCode.Engine.csproj" />
+    <ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
+  </ItemGroup>
+
+</Project>

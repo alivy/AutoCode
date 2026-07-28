@@ -1,14 +1,10 @@
 ---
 kind: logging_system
 name: 日志系统 — 无结构化日志框架，仅使用 Console.WriteLine 简单输出
+slug: logging_system
 category: logging_system
 scope:
     - '**'
-source_files:
-    - src/AutoCode.Cli/Program.cs
-    - src/APP/Program.cs
-    - src/APP.Map/Program.cs
-    - src/APP.WebAPI/Program.cs
 ---
 
 该仓库未集成任何结构化日志框架（如 Serilog、NLog、Microsoft.Extensions.Logging），也没有统一的日志记录基础设施。代码中的“日志”行为完全由 `Console.WriteLine` 直接输出到控制台，属于最基础的调试/诊断输出方式。
