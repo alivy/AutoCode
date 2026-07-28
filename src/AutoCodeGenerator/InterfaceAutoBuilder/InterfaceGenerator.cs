@@ -22,11 +22,20 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
+            // 读取 MSBuild 配置: AutoCode_InterfacePrefix
+            var interfacePrefix = context.AnalyzerConfigOptionsProvider
+                .Select((provider, _) =>
+                {
+                    provider.GlobalOptions.TryGetValue("build_property.AutoCode_InterfacePrefix", out var prefix);
+                    return prefix ?? "I";
+                });
+
             var interfaceSpecs = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: (node, _) => IsClassWithAutoInterface(node),
                     transform: (ctx, _) => ExtractInterfaceSpecs(ctx))
-                .SelectMany((specs, _) => specs)
+                .Combine(interfacePrefix)
+                .SelectMany((pair, _) => ApplyPrefix(pair.Left, pair.Right))
                 .Where(spec => spec != null)!
                 .WithComparer(InterfaceSpecComparer.Instance);
 
@@ -35,6 +44,31 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
                 var source = InterfaceBuilder.BuildInterface(spec);
                 spc.AddSource($"{spec.InterfaceName}.g.cs", SourceText.From(source, Encoding.UTF8));
             });
+        }
+
+        /// <summary>
+        /// 将配置的接口前缀应用到默认接口名
+        /// </summary>
+        private static IEnumerable<InterfaceSpec> ApplyPrefix(IEnumerable<InterfaceSpec> specs, string prefix)
+        {
+            foreach (var spec in specs)
+            {
+                // 如果接口名以默认 "I" 开头且配置了不同前缀，替换前缀
+                if (prefix != "I" && spec.InterfaceName.StartsWith("I") && spec.InterfaceName.Length > 1
+                    && char.IsUpper(spec.InterfaceName[1]))
+                {
+                    yield return new InterfaceSpec(
+                        prefix + spec.InterfaceName.Substring(1),
+                        spec.NamespaceName,
+                        spec.Usings,
+                        spec.Methods,
+                        spec.Properties);
+                }
+                else
+                {
+                    yield return spec;
+                }
+            }
         }
 
         private static bool IsClassWithAutoInterface(SyntaxNode node)

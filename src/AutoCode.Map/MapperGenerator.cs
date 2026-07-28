@@ -34,14 +34,38 @@ namespace AutoCode.Map
                 (compilation, _) => BuildCompilationDiagnostics(compilation));
             context.ReportDiagnostics(compilationDiagnostics);
 
+            // 读取 MSBuild 配置: AutoCode_MapMethodName
+            var mapMethodName = context.AnalyzerConfigOptionsProvider
+                .Select((provider, _) =>
+                {
+                    provider.GlobalOptions.TryGetValue("build_property.AutoCode_MapMethodName", out var name);
+                    return name ?? "CopyTo";
+                });
+
             // 使用 CreateSyntaxProvider 查找标记了 [Mapper] 的类
             var mapperSources = context.SyntaxProvider
                 .CreateSyntaxProvider(
                     predicate: (node, _) => IsClassWithMapperAttribute(node),
                     transform: (ctx, _) => GenerateMapperSource(ctx))
+                .Combine(mapMethodName)
+                .Select((pair, _) => ApplyMethodName(pair.Left, pair.Right))
                 .WhereNotNull();
 
             context.EmitMapperSource(mapperSources);
+        }
+
+        /// <summary>
+        /// 将配置的方法名应用到生成的源代码
+        /// </summary>
+        private static MapperSource? ApplyMethodName(MapperSource? source, string methodName)
+        {
+            if (source == null) return null;
+            if (methodName == "CopyTo") return source;
+            return new MapperSource
+            {
+                FileName = source.FileName,
+                SourceText = source.SourceText.Replace("CopyTo", methodName)
+            };
         }
 
         /// <summary>
