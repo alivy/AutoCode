@@ -1,5 +1,5 @@
 ﻿{% for us in Usings %}
-{{ us.DefName }}
+using {{ us.DefName }};
 {% endfor %}
 namespace {{NameSpace}}
 {

@@ -7,7 +7,7 @@ namespace DotTemplate.APP
     /// <summary>
     /// 自动生成模板
     /// </summary>
-    //[DotTemplate("DotTemplate/Template.dot", "CopyFile/", "Base{{DefName}}Copy.cs")]
+    [DotTemplate("DotTemplate/Template.dot", "CopyFile/", "Base{{DefName}}Copy.cs")]
     public class AutoTemplate : IAutoTemplate
     {
         /// <summary> 
