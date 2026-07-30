@@ -1,0 +1,148 @@
+{
+  "AutoEntity Full Stack": {
+    "prefix": "autoentity",
+    "body": [
+      "[AutoEntity]",
+      "public class ${1:EntityName}",
+      "{",
+      "    public int Id { get; set; }",
+      "",
+      "    [Required]",
+      "    [MaxLength(${2:200})]",
+      "    public string ${3:Name} { get; set; } = \"\";",
+      "",
+      "    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;",
+      "    $0",
+      "}"
+    ],
+    "description": "创建实体 + [AutoEntity] 全链路生成（DTO/Mapper/Validator/Repository/Service/Controller）"
+  },
+  "AutoIntercept AOP": {
+    "prefix": "autointercept",
+    "body": [
+      "[AutoIntercept(",
+      "    InterceptType.${1|Log,Log | InterceptType.Cache,Log | InterceptType.Retry,Log | InterceptType.Cache | InterceptType.Retry | InterceptType.Metrics|},",
+      "    ${2:MaxRetryCount = 3})]",
+      "public class ${3:ServiceName} : I${3:ServiceName}",
+      "{",
+      "    $0",
+      "}"
+    ],
+    "description": "添加编译时 AOP 拦截器（替代 Castle DynamicProxy）"
+  },
+  "AutoInterface": {
+    "prefix": "autointerface",
+    "body": [
+      "[AutoInterface]",
+      "public class ${1:ClassName} : I${1:ClassName}",
+      "{",
+      "    $0",
+      "}"
+    ],
+    "description": "自动提取接口（支持泛型/事件/XML文档/Nullable）"
+  },
+  "AutoController": {
+    "prefix": "autocontroller",
+    "body": [
+      "[AutoController(RoutePrefix = \"api/${1:route}\")]",
+      "[AutoInterface]",
+      "public class ${2:Name}Service : I${2:Name}Service, IScoped",
+      "{",
+      "    $0",
+      "}"
+    ],
+    "description": "自动生成 REST API Controller（统一响应/版本/授权）"
+  },
+  "AutoLog Decorator": {
+    "prefix": "autolog",
+    "body": [
+      "[AutoLog(LogParameters = ${1:true}, LogElapsed = ${2:true})]",
+      "public class ${3:ServiceName} : I${3:ServiceName}",
+      "{",
+      "    $0",
+      "}"
+    ],
+    "description": "自动生成日志装饰器（结构化日志/耗时统计/异常捕获）"
+  },
+  "AutoDTO": {
+    "prefix": "autodto",
+    "body": [
+      "[AutoDTO]",
+      "public class ${1:EntityName}",
+      "{",
+      "    public int Id { get; set; }",
+      "    $0",
+      "}"
+    ],
+    "description": "自动生成 DTO（record/分页/审计排除）"
+  },
+  "MapFrom": {
+    "prefix": "mapfrom",
+    "body": [
+      "[MapFrom(typeof(${1:SourceEntity}))]",
+      "public class ${2:TargetDto}",
+      "{",
+      "    $0",
+      "}"
+    ],
+    "description": "编译时对象映射（替代 AutoMapper，零运行时反射）"
+  },
+  "AutoValidator": {
+    "prefix": "autovalidator",
+    "body": [
+      "[AutoValidator]",
+      "public class ${1:RequestName}",
+      "{",
+      "    [Required]",
+      "    public string ${2:Name} { get; set; } = \"\";",
+      "    $0",
+      "}"
+    ],
+    "description": "编译时验证生成（12种规则/跨属性/集合验证）"
+  },
+  "AutoCrud": {
+    "prefix": "autocrud",
+    "body": [
+      "[AutoCrud]",
+      "public class ${1:EntityName}",
+      "{",
+      "    public int Id { get; set; }",
+      "    $0",
+      "}"
+    ],
+    "description": "全栈 CRUD 生成（EF Core/Repository/软删除）"
+  },
+  "AutoTest": {
+    "prefix": "autotest",
+    "body": [
+      "[AutoTest]",
+      "public class ${1:ServiceName}",
+      "{",
+      "    $0",
+      "}"
+    ],
+    "description": "自动生成单元测试（Mock/边界值/异常路径）"
+  },
+  "SkipIntercept": {
+    "prefix": "skipintercept",
+    "body": [
+      "[SkipIntercept]",
+      "public ${1:void} ${2:MethodName}(${3})",
+      "{",
+      "    $0",
+      "}"
+    ],
+    "description": "标记方法跳过 AOP 拦截"
+  },
+  "InterceptOverride": {
+    "prefix": "interceptoverride",
+    "body": [
+      "[InterceptOverride(InterceptType.${1:Log} | InterceptType.${2:Retry})]",
+      "public ${3:async Task<${4:bool}>} ${5:MethodName}(${6})",
+      "{",
+      "    $0",
+      "}"
+    ],
+    "description": "方法级覆盖类级别的拦截配置"
+  }
+}

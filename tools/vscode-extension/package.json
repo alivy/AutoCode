@@ -1,0 +1,111 @@
+{
+  "name": "autocode-vscode",
+  "displayName": "AutoCode - 编译时代码生成",
+  "description": "AutoCode 智能辅助：一键安装、代码生成、Snippet 补全、生成预览",
+  "version": "1.0.0",
+  "publisher": "AMiao",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Programming Languages", "Snippets", "Other"],
+  "keywords": ["csharp", "source-generator", "roslyn", "code-generation", "aop"],
+  "activationEvents": ["onLanguage:csharp"],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "autocode.install",
+        "title": "AutoCode: Install to Project",
+        "icon": "$(package)"
+      },
+      {
+        "command": "autocode.generate",
+        "title": "AutoCode: Generate Code for Class...",
+        "icon": "$(zap)"
+      },
+      {
+        "command": "autocode.preview",
+        "title": "AutoCode: Preview Generated Output",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "autocode.doctor",
+        "title": "AutoCode: Run Diagnostics",
+        "icon": "$(pulse)"
+      },
+      {
+        "command": "autocode.addIntercept",
+        "title": "AutoCode: Add [AutoIntercept] AOP",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "autocode.addEntity",
+        "title": "AutoCode: Add [AutoEntity] Full Stack",
+        "icon": "$(rocket)"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "autocode.generate",
+          "group": "autocode@1",
+          "when": "editorLangId == csharp"
+        },
+        {
+          "command": "autocode.addIntercept",
+          "group": "autocode@2",
+          "when": "editorLangId == csharp"
+        },
+        {
+          "command": "autocode.addEntity",
+          "group": "autocode@3",
+          "when": "editorLangId == csharp"
+        },
+        {
+          "command": "autocode.preview",
+          "group": "autocode@4",
+          "when": "editorLangId == csharp"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "autocode.install",
+          "group": "autocode@1",
+          "when": "resourceExtname == .csproj"
+        }
+      ],
+      "commandPalette": [
+        { "command": "autocode.install" },
+        { "command": "autocode.doctor" },
+        { "command": "autocode.preview" }
+      ]
+    },
+    "snippets": [
+      {
+        "language": "csharp",
+        "path": "./snippets/autocode.json"
+      }
+    ],
+    "configuration": {
+      "title": "AutoCode",
+      "properties": {
+        "autocode.showCodeLens": {
+          "type": "boolean",
+          "default": true,
+          "description": "在标记了 AutoCode 特性的类上方显示 CodeLens"
+        },
+        "autocode.defaultInterceptors": {
+          "type": "string",
+          "default": "Log | Metrics",
+          "description": "新增 [AutoIntercept] 时的默认拦截器组合"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.3.0"
+  }
+}

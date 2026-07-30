@@ -19,6 +19,7 @@
     <ProjectReference Include="..\AutoCode.Testing\AutoCode.Testing.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\AutoCode.Logging\AutoCode.Logging.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\AutoCode.Crud\AutoCode.Crud.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\AutoCode.Intercept\AutoCode.Intercept.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
     <ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>

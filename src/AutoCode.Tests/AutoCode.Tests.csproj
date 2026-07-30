@@ -30,6 +30,7 @@
     <ProjectReference Include="..\AutoCode.Map\AutoCode.Map.csproj" />
     <ProjectReference Include="..\AutoCode.Analyzers\AutoCode.Analyzers.csproj" />
     <ProjectReference Include="..\AutoCode.DependencyInjection\AutoCode.DependencyInjection.csproj" />
+    <ProjectReference Include="..\AutoCode.Intercept\AutoCode.Intercept.csproj" />
   </ItemGroup>
 
 </Project>

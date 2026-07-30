@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- AutoCode NuGet 包（发布后使用） -->
+    <PackageReference Include="AM.AutoCode" Version="1.2.0" />
+  </ItemGroup>
+
+</Project>

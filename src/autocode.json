@@ -48,6 +48,14 @@
     "includeOpenTelemetry": false,
     "maskSensitive": true
   },
+  "intercept": {
+    "defaultInterceptors": "Log,Metrics",
+    "cacheDurationSeconds": 300,
+    "maxRetryCount": 3,
+    "retryBaseDelayMs": 100,
+    "circuitFailureThreshold": 5,
+    "circuitBreakDurationSeconds": 30
+  },
   "plugins": {
     "interface": { "enabled": true },
     "mapper": { "enabled": true },
@@ -58,6 +66,7 @@
     "dependencyInjection": { "enabled": true },
     "testing": { "enabled": true },
     "logging": { "enabled": true },
-    "cascade": { "enabled": true }
+    "cascade": { "enabled": true },
+    "intercept": { "enabled": true }
   }
 }

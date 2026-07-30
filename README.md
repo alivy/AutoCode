@@ -1,6 +1,6 @@
 # AutoCode
 
-基于 Roslyn IIncrementalGenerator 的 C# 编译时代码生成框架。**V2 架构**采用插件化引擎 + 管线执行模型，提供 **10 个生成插件 + 5 个分析器 + 2 个代码修复 + CLI 工具**，覆盖接口生成、模板生成、对象映射、DTO、验证、Controller、DI 注册、测试桩、日志装饰器、CRUD 级联生成等场景。
+基于 Roslyn IIncrementalGenerator 的 C# 编译时代码生成框架。**V2 架构**采用插件化引擎 + 管线执行模型，提供 **11 个生成插件 + 5 个分析器 + 3 个代码修复 + CLI 工具 + VS Code 扩展**，覆盖接口生成、模板生成、对象映射、DTO、验证、Controller、DI 注册、测试桩、日志装饰器、CRUD 级联生成、**编译时 AOP 拦截器**等场景。零运行时反射，NativeAOT 兼容，替代 Castle DynamicProxy 等动态代理方案。
 
 ## V2 架构亮点
 
@@ -104,6 +104,7 @@ V2 支持项目级 JSON 配置文件，精细控制每个插件的行为：
 | **LoggingPlugin** | `[AutoLog]` | 自动生成日志装饰器（参数记录 + 耗时统计 + 异常捕获） |
 | **CrudPlugin** | `[AutoCrud]` | 一键生成 CRUD Service 接口 + 内存实现 + RESTful Controller |
 | **CascadePlugin** | `[AutoEntity]` | 级联生成：一个实体自动触发 DTO + Mapper + Validation + Controller 全链路 |
+| **InterceptPlugin** | `[AutoIntercept]` | 编译时 AOP 拦截器：Log/Cache/Retry/CircuitBreaker/Metrics/Throttle 管线，替代动态代理 |
 
 > V1 生成器（DotTemplateGenerator 等）仍保留在独立项目中，保持向后兼容。
 
@@ -116,6 +117,11 @@ V2 支持项目级 JSON 配置文件，精细控制每个插件的行为：
 | **AC003** | Warning | `[AutoIgnore]` 标记在非公共成员上 | 自动移除 `[AutoIgnore]` |
 | **AC004** | Warning | Controller 直接引用 DbContext/Repository 等数据层类型 | 提示通过 Service 层访问 |
 | **AC006** | Info | Service/Controller 类命名不符合约定 | 提示重命名 |
+| **AC8xxx** | Info | 类符合 Service/Entity 模式但缺少 AutoCode 标记 | 智能推荐 [AutoEntity]/[AutoIntercept]/[AutoInterface] |
+| **AC9001** | Warning | [AutoIntercept] 类未实现接口 | 提示装饰器模式需要接口 |
+| **AC9002** | Warning | [AutoIntercept(Cache)] 用于 void/Task 方法 | 提示缓存需要有返回值 |
+| **AC9003** | Error | [CustomIntercept] 类型未实现 IInterceptHandler/IMethodHandler | 提示实现接口 |
+| **AC9100** | Info | 方法有 [CustomIntercept] 时 | ✅ 提示已生成的 Args 类型名 + 参数结构（开发者感知） |
 
 ### MSBuild 配置
 
@@ -142,15 +148,39 @@ V2 支持项目级 JSON 配置文件，精细控制每个插件的行为：
 
 ## 安装
 
+### 方式一：NuGet 包
+
 ```bash
 dotnet add package AM.AutoCode
 ```
 
-CLI 工具：
+### 方式二：一键安装脚本
+
+```powershell
+# 下载并执行（自动完成 NuGet + 配置 + 示例 + 诊断）
+.\scripts\install-autocode.ps1 -ProjectPath ./MyApp -WithSamples
+```
+
+### 方式三：dotnet new 模板
+
+```bash
+dotnet new install AM.AutoCode.Templates
+dotnet new autocode-webapi -n MyProject    # 创建带 AutoCode 的 WebAPI 项目
+```
+
+### CLI 工具
 
 ```bash
 dotnet tool install -g AM.AutoCode.Cli
 ```
+
+### VS Code 扩展
+
+安装 `autocode-vscode` 扩展后，右键 .cs 文件即可：
+- 添加 [AutoIntercept] AOP 拦截
+- 添加 [AutoEntity] 全链路生成
+- 预览生成代码
+- 12 个智能 Snippet（输入 `autoentity`、`autointercept` 等触发）
 
 ## 使用指南
 
@@ -329,7 +359,166 @@ public class UserServiceController : ControllerBase
 
 HTTP 推断规则：Get/Find→GET, Create/Add→POST, Update/Modify→PUT, Delete/Remove→DELETE。
 
-### 9. 编译时依赖注入
+### 9. 编译时 AOP 拦截器（V2.1 新增）
+
+替代 Castle DynamicProxy 等运行时动态代理，编译时生成拦截管线：
+
+```csharp
+[AutoIntercept(
+    InterceptType.Log | InterceptType.Cache | InterceptType.Retry | InterceptType.Metrics,
+    CacheDurationSeconds = 60,
+    MaxRetryCount = 3)]
+public class OrderService : IOrderService
+{
+    public async Task<Order?> GetByIdAsync(int id)
+    {
+        return await _db.Orders.FindAsync(id);  // 纯业务代码
+    }
+}
+```
+
+编译后自动生成 `InterceptedOrderService.g.cs`，包含完整拦截管线：
+
+```
+请求 → [Throttle] → [Cache 命中?] → [Log Before] → [Retry 包裹] → 实际方法
+                                                                    ↓
+响应 ← [Metrics] ← [Cache 写入] ← [Log After] ← ─ ─ ─ ─ ─ ─ ─ ─ ┘
+异常 → [Retry 重试] → [CircuitBreaker 计数] → [Log Error] → throw
+```
+
+支持的拦截器：
+
+| 拦截器 | 阶段 | 功能 |
+|--------|------|------|
+| `Log` | Before/After/Exception | 结构化日志 + 耗时统计 |
+| `Cache` | Before(短路)/After(写入) | IMemoryCache 自动缓存 |
+| `Retry` | Exception | 指数退避重试 |
+| `CircuitBreaker` | Before/Exception | 连续失败熔断保护 |
+| `Metrics` | After | System.Diagnostics.Metrics 上报 |
+| `Throttle` | Before | SemaphoreSlim 并发限流 |
+| `Validate` | Before | 入参校验（null/空字符串自动检查） |
+| `Tracing` | Before/After | OpenTelemetry ActivitySource Span |
+| `Transaction` | Before/After/Exception | 事务 Begin/Commit/Rollback |
+
+**方法级精细控制：**
+
+```csharp
+[AutoIntercept(InterceptType.Log | InterceptType.Metrics)]  // 类级别默认
+public class PaymentService : IPaymentService
+{
+    public void HealthCheck() { }  // 继承类级别
+
+    [SkipIntercept]  // 跳过拦截
+    public void InternalCleanup() { }
+
+    [InterceptOverride(InterceptType.Log | InterceptType.Retry | InterceptType.CircuitBreaker)]
+    public async Task<bool> ChargeAsync(decimal amount) { }  // 覆盖类级别
+}
+```
+
+**自定义拦截器（两层设计）：**
+
+**第一层：`IInterceptHandler`**（通用横切，不关心方法签名）：
+
+```csharp
+public class ConcurrencyMonitorHandler : InterceptHandlerBase
+{
+    private static int _activeCount;
+
+    public override void OnBefore(InterceptContext ctx)
+    {
+        var current = Interlocked.Increment(ref _activeCount);
+        ctx.SetTag("concurrency", current);
+    }
+
+    public override void OnAfter(InterceptContext ctx, object? result)
+    {
+        Interlocked.Decrement(ref _activeCount);
+    }
+
+    public override void OnException(InterceptContext ctx, Exception ex)
+    {
+        Interlocked.Decrement(ref _activeCount);
+    }
+}
+```
+
+**第二层：`IMethodHandler<TArgs, TResult>`**（强类型，知道方法名/参数/返回值）：
+
+```csharp
+// 生成器自动产出: public record ChargeAsyncArgs(int OrderId, decimal Amount);
+// 用户无需手动定义 Args，直接引用即可
+
+public class ChargeAuditHandler : MethodHandlerBase<ChargeAsyncArgs, bool>
+{
+    public override void OnBefore(ChargeAsyncArgs args, MethodContext ctx)
+    {
+        // args.OrderId, args.Amount — 强类型，有 IntelliSense
+        if (args.Amount > 100000)
+        {
+            ctx.ShortCircuit = true;  // 短路拒绝
+            ctx.Result = false;
+        }
+    }
+
+    public override void OnAfter(ChargeAsyncArgs args, bool result, MethodContext ctx)
+    {
+        // result 是强类型 bool，直接做数据处理
+        if (result)
+            _auditLog.Record(args.OrderId, args.Amount, ctx.Elapsed);
+    }
+
+    public override void OnException(ChargeAsyncArgs args, Exception ex, MethodContext ctx)
+    {
+        _alert.Notify($"订单{args.OrderId}扣款失败: {ex.Message}");
+    }
+}
+```
+
+使用：
+
+```csharp
+// 类级别：通用 handler
+[AutoIntercept(InterceptType.Log | InterceptType.Metrics)]
+[CustomIntercept(typeof(ConcurrencyMonitorHandler), Order = 1)]
+public class OrderService : IOrderService { }
+
+// 方法级别：强类型 handler（生成器自动产出 ChargeAsyncArgs）
+public class PaymentService : IPaymentService
+{
+    [AutoIntercept(InterceptType.Log | InterceptType.Retry)]
+    [CustomIntercept(typeof(ChargeAuditHandler))]
+    public async Task<bool> ChargeAsync(int orderId, decimal amount) { ... }
+}
+```
+
+**选择指南：**
+
+| 场景 | 用哪个 | 原因 |
+|------|--------|------|
+| 日志/指标/并发计数 | `IInterceptHandler` | 不关心具体方法签名 |
+| 数据收集/业务审计/结果处理 | `IMethodHandler<TArgs, TResult>` | 需要强类型参数和返回值 |
+| 权限校验/限流 | `IInterceptHandler` | 通用横切 |
+| 财务对账/告警 | `IMethodHandler<TArgs, TResult>` | 需要具体业务数据 |
+
+对比动态代理（基于实际基准测试数据，100,000 次迭代）：
+
+| 维度 | Castle DynamicProxy | AutoCode [AutoIntercept] |
+|------|--------------------|-----------------------|
+| 实现时机 | 运行时 Reflection.Emit | **编译时 Source Generator** |
+| 单次调用开销 | 1.29x 基线 | **1.20x 基线** |
+| 启动时间（首次代理） | 3.4ms / 个 | **0ms** |
+| 50个 Service 启动开销 | ~169ms | **0ms** |
+| 额外依赖 | Castle.Core 400KB+ | **零依赖** |
+| 可调试性 | ❌ 代理类不可见 | **✅ F12 跳转 .g.cs** |
+| NativeAOT | ❌ 不兼容 | **✅ 完全兼容** |
+| 强类型参数 | ❌ object[] | **✅ 自动生成 Args record** |
+| 异步 Handler | ❌ 复杂 | **✅ IAsyncMethodHandler<TArgs,TResult>** |
+
+> 运行基准测试: `dotnet run --project src/AutoCode.Benchmarks -c Release -- --quick`
+> 详细对比分析: [samples/04-AopComparison/README.md](samples/04-AopComparison/README.md)
+
+### 10. 编译时依赖注入
 
 实现 `IScoped`/`ISingleton`/`ITransient` 接口的类自动注册：
 
@@ -368,7 +557,7 @@ dotnet autocode validate-templates    # 验证 .dot 模板语法
 AutoCode/
 ├── src/
 │   │── ── V2 引擎（插件化架构）──
-│   ├── AutoCode.Engine/                  # 核心引擎（Pipeline/CodeBuilder/Plugin/Convention）
+│   ├── AutoCode.Engine/                  # 核心引擎（Pipeline/CodeBuilder/Plugin/Convention/ConfigRecommender）
 │   ├── AutoCode.Plugin.Sdk/              # 插件开发 SDK
 │   ├── AutoCode.Plugins.Interface/       # 接口生成插件
 │   ├── AutoCode.Plugins.Mapper/          # 对象映射插件
@@ -380,13 +569,16 @@ AutoCode/
 │   ├── AutoCode.Plugins.Logging/         # 日志装饰器插件
 │   ├── AutoCode.Plugins.Crud/            # CRUD 生成插件
 │   ├── AutoCode.Plugins.Cascade/         # 级联生成插件
+│   ├── AutoCode.Plugins.Intercept/       # 🆕 编译时 AOP 拦截器插件
+│   ├── AutoCode.Intercept/               # 🆕 AOP 拦截器 Source Generator
+│   ├── AutoCode.Benchmarks/              # 🆕 AOP 性能基准测试（vs Castle DynamicProxy）
 │   ├── AutoCode.Tests.V2/                # V2 引擎单元测试
 │   ├── Samples/V2Demo/                   # V2 完整使用示例
 │   ├── autocode.json                     # V2 插件配置文件
 │   │
 │   │── ── 共享基础 ──
-│   ├── AutoCode.Model/                   # 特性模型库 (9 个特性)
-│   ├── AutoCode.Analyzers/               # 分析器 + CodeFix (AC001~AC006)
+│   ├── AutoCode.Model/                   # 特性模型库 (12 个特性，含 AutoIntercept)
+│   ├── AutoCode.Analyzers/               # 分析器 + CodeFix (AC001~AC8xxx + 智能推荐)
 │   ├── AutoCode.Cli/                     # CLI 工具
 │   ├── AutoCode.Extensions.SourceGenerator/  # NuGet 打包
 │   │
@@ -404,7 +596,7 @@ AutoCode/
 │   │
 │   │── ── 示例项目 ──
 │   ├── APP/                              # 接口生成示例
-│   ├── APP.WebAPI/                       # 综合示例 (DTO+验证+Controller+DI)
+│   ├── APP.WebAPI/                       # 综合示例 (DTO+验证+Controller+DI+AOP)
 │   ├── APP.Map/                          # 对象映射示例
 │   ├── DotTemplate.APP/                  # 模板生成示例
 │   │
@@ -412,6 +604,18 @@ AutoCode/
 │   ├── AutoCode.sln                      # 解决方案
 │   └── .editorconfig                     # 代码规范
 │
+├── samples/                              # 🆕 示例画廊（Before/After 对比）
+│   ├── 01-QuickStart/                    #   5分钟上手：一个标记生成全链路
+│   ├── 02-InterceptAOP/                  #   编译时 AOP 替代动态代理
+│   ├── 03-TypedMethodHandler/            #   强类型方法拦截器（各种参数类型场景）
+│   ├── 04-AopComparison/                 #   AOP 方案对比分析 + 性能基准测试
+│   └── README.md
+├── templates/                            # 🆕 dotnet new 项目模板
+│   └── autocode-webapi/                  #   WebAPI + 全链路模板
+├── tools/                                # 🆕 开发工具
+│   └── vscode-extension/                 #   VS Code 扩展 + 12 个 Snippet
+├── scripts/                              # 🆕 自动化脚本
+│   └── install-autocode.ps1              #   一键安装脚本
 ├── .github/workflows/ci.yml             # CI/CD 流水线
 └── README.md
 ```
@@ -448,6 +652,24 @@ nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.n
 
 ## 技术亮点
 
+### V2.1 新增
+
+- **编译时 AOP**: [AutoIntercept] 替代 Castle DynamicProxy，零反射、可调试、AOT 兼容
+- **拦截管线**: Log/Cache/Retry/CircuitBreaker/Metrics/Throttle/Validate/Tracing/Transaction 自由组合
+- **强类型 Args 自动生成**: 生成器自动产出 `{MethodName}Args` record，Handler 直接引用，IntelliSense 完整可用
+- **两层 Handler 设计**: IInterceptHandler（通用横切）+ IMethodHandler<TArgs,TResult>（强类型数据处理）
+- **异步 Handler**: IAsyncMethodHandler<TArgs,TResult> 支持异步审计/告警场景
+- **方法级精准拦截**: [AutoIntercept] 可打在方法上，只拦截标记的方法，其余透传
+- **Ctrl+. 一键生成 Handler**: 任意 public 方法上按 Ctrl+. 自动加标记 + 生成 Handler 骨架
+- **AC9100 开发者感知**: 编译后 IDE 提示已生成的 Args 类型名 + 参数结构
+- **性能基准测试**: BenchmarkDotNet 对比 Castle DynamicProxy，启动时间快 3389x
+- **智能 CodeFix**: Ctrl+. 根据类模式推荐 [AutoEntity]/[AutoIntercept]/[AutoInterface]
+- **配置推荐引擎**: ConfigRecommender 分析项目依赖自动推荐最佳配置
+- **示例画廊**: samples/ 目录 4 个示例（Before/After + 多参数类型 + AOP 对比）
+- **一键安装**: PowerShell 脚本 5 分钟完成项目集成
+- **dotnet new 模板**: `dotnet new autocode-webapi` 创建最佳实践项目
+- **VS Code 扩展**: 右键菜单 + 12 个 Snippet + 命令面板
+
 ### V2 引擎
 
 - **插件化架构**: 所有生成能力统一为 IGenerationPlugin，可独立启停、按需组合
@@ -478,7 +700,8 @@ nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.n
 
 | 版本 | 说明 |
 |------|------|
-| **2.0.0** | **架构升级：插件化引擎 (AutoCode.Engine) + Pipeline 管线 + Fluent CodeBuilder + 约定引擎 + JSON 配置 + 插件 SDK + CascadePlugin 级联生成 + [MapFrom]/[AutoEntity] 新特性** |
+| **2.1.0** | **智能化升级：[AutoIntercept] 编译时 AOP 拦截器（替代动态代理）+ 强类型 Args 自动生成 + IMethodHandler/IAsyncMethodHandler 两层 Handler + 方法级精准拦截 + Ctrl+. 一键生成 Handler + AC9100 开发者感知 + 性能基准测试（vs Castle）+ 智能 CodeFix + 配置推荐引擎 + 4 个示例 + 一键安装 + dotnet new 模板 + VS Code 扩展** |
+| **2.0.0** | 架构升级：插件化引擎 (AutoCode.Engine) + Pipeline 管线 + Fluent CodeBuilder + 约定引擎 + JSON 配置 + 插件 SDK + CascadePlugin 级联生成 + [MapFrom]/[AutoEntity] 新特性 |
 | 1.3.0 | 深度提效：+3 生成器 (AutoTest/AutoLog/AutoCrud)、+2 分析器 (AC004/AC006)、Async/XML Doc/Nullable/Swagger 智能化增强 |
 | 1.2.0 | 全面扩展：+4 生成器 (DTO/验证/Controller/DI)、+3 分析器、+2 CodeFix、CLI 工具、CI/CD、MSBuild 配置、23 个测试 |
 | 1.1.x | 架构重构：IIncrementalGenerator 迁移、增量缓存、泛型/属性支持 |
