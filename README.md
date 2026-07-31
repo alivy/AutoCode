@@ -660,6 +660,7 @@ nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.n
 - **两层 Handler 设计**: IInterceptHandler（通用横切）+ IMethodHandler<TArgs,TResult>（强类型数据处理）
 - **异步 Handler**: IAsyncMethodHandler<TArgs,TResult> 支持异步审计/告警场景
 - **方法级精准拦截**: [AutoIntercept] 可打在方法上，只拦截标记的方法，其余透传
+- **Ctrl+. 全功能右键生成**: 统一 AutoCodeRefactoringProvider 覆盖全部 11 个生成器，根据类特征智能推荐（实体→AutoEntity/DTO/Crud，Service→Interface/Controller/Log/Test，Request→Validator）
 - **Ctrl+. 一键生成 Handler**: 任意 public 方法上按 Ctrl+. 自动加标记 + 生成 Handler 骨架
 - **AC9100 开发者感知**: 编译后 IDE 提示已生成的 Args 类型名 + 参数结构
 - **性能基准测试**: BenchmarkDotNet 对比 Castle DynamicProxy，启动时间快 3389x
