@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: templates
+title: AutoCode WebAPI 项目模板
+scope:
+    - templates/
+source_files: []
+depends_on: []
+related_to:
+    - path: src
+    - path: tools

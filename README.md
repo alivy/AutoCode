@@ -556,69 +556,69 @@ dotnet autocode validate-templates    # 验证 .dot 模板语法
 ```
 AutoCode/
 ├── src/
-│   │── ── V2 引擎（插件化架构）──
-│   ├── AutoCode.Engine/                  # 核心引擎（Pipeline/CodeBuilder/Plugin/Convention/ConfigRecommender）
-│   ├── AutoCode.Plugin.Sdk/              # 插件开发 SDK
-│   ├── AutoCode.Plugins.Interface/       # 接口生成插件
-│   ├── AutoCode.Plugins.Mapper/          # 对象映射插件
-│   ├── AutoCode.Plugins.Dto/             # DTO 生成插件
-│   ├── AutoCode.Plugins.Validation/      # 验证代码插件
-│   ├── AutoCode.Plugins.WebApi/          # API Controller 插件
-│   ├── AutoCode.Plugins.DependencyInjection/  # 编译时 DI 插件
-│   ├── AutoCode.Plugins.Testing/         # 测试桩生成插件
-│   ├── AutoCode.Plugins.Logging/         # 日志装饰器插件
-│   ├── AutoCode.Plugins.Crud/            # CRUD 生成插件
-│   ├── AutoCode.Plugins.Cascade/         # 级联生成插件
-│   ├── AutoCode.Plugins.Intercept/       # 🆕 编译时 AOP 拦截器插件
-│   ├── AutoCode.Intercept/               # 🆕 AOP 拦截器 Source Generator
-│   ├── AutoCode.Benchmarks/              # 🆕 AOP 性能基准测试（vs Castle DynamicProxy）
-│   ├── AutoCode.Tests.V2/                # V2 引擎单元测试
-│   ├── Samples/V2Demo/                   # V2 完整使用示例
-│   ├── autocode.json                     # V2 插件配置文件
+│   │── ── 核心层（职责明确，单向依赖）──
+│   ├── AutoCode.Model/                   # 契约层：所有 Attribute + Handler 接口（零依赖）
+│   ├── AutoCode.Engine/                  # 引擎层：Pipeline + CodeBuilder + Plugin SDK + Config
+│   ├── AutoCode.Generators/              # 生成层：全部 11 个 IIncrementalGenerator（11合1）
+│   │   ├── V1/                           #   接口/映射/DTO/验证/Controller/DI/日志/测试/CRUD/拦截
+│   │   ├── V2/                           #   V2 插件实现（级联生成等）
+│   │   └── Helpers/                      #   共享辅助类
+│   ├── AutoCode.Analyzers/               # 分析层：诊断 + CodeFix + 右键重构（AC001~AC9100）
 │   │
-│   │── ── 共享基础 ──
-│   ├── AutoCode.Model/                   # 特性模型库 (12 个特性，含 AutoIntercept)
-│   ├── AutoCode.Analyzers/               # 分析器 + CodeFix (AC001~AC8xxx + 智能推荐)
-│   ├── AutoCode.Cli/                     # CLI 工具
+│   │── ── 工具层 ──
+│   ├── AutoCode.Cli/                     # CLI 工具（dotnet autocode）
+│   ├── AutoCode.Benchmarks/              # 性能基准测试（vs Castle DynamicProxy）
 │   ├── AutoCode.Extensions.SourceGenerator/  # NuGet 打包
+│   ├── AutoCode.XmlTemplate.SourceGenerator/ # DotLiquid 模板生成器
 │   │
-│   │── ── V1 生成器（向后兼容）──
-│   ├── AutoCodeGenerator/                # 接口生成器 (V1)
-│   ├── AutoCode.XmlTemplate.SourceGenerator/  # 模板生成器 (V1)
-│   ├── AutoCode.Map/                     # 对象映射生成器 (V1)
-│   ├── AutoCode.Dto/                     # DTO 生成器 (V1)
-│   ├── AutoCode.Validation/              # 验证代码生成器 (V1)
-│   ├── AutoCode.WebApi/                  # Controller 生成器 (V1)
-│   ├── AutoCode.DependencyInjection/     # DI 注册生成器 (V1)
-│   ├── AutoCode.Logging/                 # 日志装饰器 (V1)
-│   ├── AutoCode.Crud/                    # CRUD 生成器 (V1)
-│   ├── AutoCode.Testing/                 # 测试桩生成器 (V1)
+│   │── ── 示例 + 测试 ──
+│   ├── APP.WebAPI/                       # 综合示例（DTO+验证+Controller+DI+AOP+拦截）
+│   ├── APP.WebAPI.Core/                  # 示例核心层
+│   ├── AutoCode.Tests/                   # 单元测试
 │   │
-│   │── ── 示例项目 ──
-│   ├── APP/                              # 接口生成示例
-│   ├── APP.WebAPI/                       # 综合示例 (DTO+验证+Controller+DI+AOP)
-│   ├── APP.Map/                          # 对象映射示例
-│   ├── DotTemplate.APP/                  # 模板生成示例
-│   │
-│   ├── AutoCode.Tests/                   # V1 单元测试
-│   ├── AutoCode.sln                      # 解决方案
+│   ├── autocode.json                     # 插件配置文件
+│   ├── AutoCode.sln                      # 解决方案（11 个项目）
 │   └── .editorconfig                     # 代码规范
 │
-├── samples/                              # 🆕 示例画廊（Before/After 对比）
+├── samples/                              # 示例画廊（Before/After 对比）
 │   ├── 01-QuickStart/                    #   5分钟上手：一个标记生成全链路
 │   ├── 02-InterceptAOP/                  #   编译时 AOP 替代动态代理
 │   ├── 03-TypedMethodHandler/            #   强类型方法拦截器（各种参数类型场景）
 │   ├── 04-AopComparison/                 #   AOP 方案对比分析 + 性能基准测试
 │   └── README.md
-├── templates/                            # 🆕 dotnet new 项目模板
+├── templates/                            # dotnet new 项目模板
 │   └── autocode-webapi/                  #   WebAPI + 全链路模板
-├── tools/                                # 🆕 开发工具
+├── tools/                                # 开发工具
 │   └── vscode-extension/                 #   VS Code 扩展 + 12 个 Snippet
-├── scripts/                              # 🆕 自动化脚本
+├── scripts/                              # 自动化脚本
 │   └── install-autocode.ps1              #   一键安装脚本
 ├── .github/workflows/ci.yml             # CI/CD 流水线
 └── README.md
 ```
+
+### 架构职责与依赖方向
+
+```
+消费方项目（APP.WebAPI 等）
+    │
+    ├──引用──→ AutoCode.Model（契约层：Attribute 定义）
+    │
+    └──Analyzer──→ AutoCode.Generators（生成层：11 个 Source Generator）
+                       │
+                       └──依赖──→ AutoCode.Engine（引擎层：Pipeline/CodeBuilder）
+                                      │
+                                      └──依赖──→ AutoCode.Model
+```
+
+| 项目 | 职责 | TargetFramework |
+|------|------|----------------|
+| `AutoCode.Model` | 契约层：定义所有 Attribute + IInterceptHandler/IMethodHandler 接口 | netstandard2.0 |
+| `AutoCode.Engine` | 引擎层：Pipeline 管线 + Fluent CodeBuilder + 约定推断 + 配置系统 | netstandard2.0 |
+| `AutoCode.Generators` | 生成层：全部 11 个 IIncrementalGenerator（接口/映射/DTO/验证/Controller/DI/日志/测试/CRUD/级联/拦截） | netstandard2.0 |
+| `AutoCode.Analyzers` | 分析层：诊断规则 + CodeFix + Ctrl+. 右键重构 | netstandard2.0 |
+| `AutoCode.Cli` | CLI 工具：list/init/generate/analyze/doctor | net8.0 |
+| `AutoCode.Benchmarks` | 性能基准：BenchmarkDotNet 对比 Castle DynamicProxy | net8.0 |
+| `APP.WebAPI` | 综合示例：展示所有生成器协同工作 | net8.0 |
 
 ## 构建与测试
 

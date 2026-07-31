@@ -3,25 +3,73 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-28T11:36:08Z"
+exported_at: "2026-07-31T05:24:52Z"
 modules:
     "":
-        dir_name: AutoCode 编译时代码生成工具集
-        title: AutoCode 编译时代码生成工具集
+        dir_name: AutoCode 编译时代码生成框架（根仓库）
+        title: AutoCode 编译时代码生成框架（根仓库）
         scope: []
         source_files: []
         children:
-            - fc77e813-e083-4663-a3ee-62a244bbbfb7
+            - samples
+            - scripts
+            - src
+            - templates
+            - tools
         depends_on: []
         related_to: []
-    fc77e813-e083-4663-a3ee-62a244bbbfb7:
-        dir_name: AutoCode 项目根文档与版本控制配置
-        title: AutoCode 项目根文档与版本控制配置
+    samples:
+        dir_name: AutoCode 示例画廊（编译时代码生成演示）
+        title: AutoCode 示例画廊（编译时代码生成演示）
         scope:
-            - README.md
-            - README.en.md
-            - .gitignore
+            - samples/
         source_files: []
         children: []
         depends_on: []
-        related_to: []
+        related_to:
+            - path: src
+    scripts:
+        dir_name: AutoCode 一键安装脚本
+        title: AutoCode 一键安装脚本
+        scope:
+            - scripts/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: src
+            - path: tools
+    src:
+        dir_name: AutoCode 代码生成引擎与插件体系
+        title: AutoCode 代码生成引擎与插件体系
+        scope:
+            - src/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: samples
+            - path: scripts
+            - path: templates
+    templates:
+        dir_name: AutoCode WebAPI 项目模板
+        title: AutoCode WebAPI 项目模板
+        scope:
+            - templates/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: src
+            - path: tools
+    tools:
+        dir_name: VS Code 扩展（AutoCode 插件）
+        title: VS Code 扩展（AutoCode 插件）
+        scope:
+            - tools/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to:
+            - path: scripts
+            - path: templates

@@ -10,16 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AutoCodeGenerator\AutoCode.SourceGenerator.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\AutoCode.DependencyInjection\AutoCode.DependencyInjection.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\AutoCode.Dto\AutoCode.Dto.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\AutoCode.Validation\AutoCode.Validation.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\AutoCode.WebApi\AutoCode.WebApi.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- 统一代码生成器（11合1：接口/映射/DTO/验证/Controller/DI/日志/测试/CRUD/级联/拦截）-->
+    <ProjectReference Include="..\AutoCode.Generators\AutoCode.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- 分析器 + CodeFix + 右键重构 -->
     <ProjectReference Include="..\AutoCode.Analyzers\AutoCode.Analyzers.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\AutoCode.Testing\AutoCode.Testing.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\AutoCode.Logging\AutoCode.Logging.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\AutoCode.Crud\AutoCode.Crud.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
-    <ProjectReference Include="..\AutoCode.Intercept\AutoCode.Intercept.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- 契约层（Attribute + Handler 接口）-->
     <ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
   </ItemGroup>
