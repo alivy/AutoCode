@@ -1,3 +1,4 @@
+using AutoCode.Analyzers.Recipes;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -12,17 +13,18 @@ using System.Threading.Tasks;
 namespace AutoCode.Analyzers.CodeFixes
 {
     /// <summary>
-    /// AutoCode 统一右键重构提供器 - 覆盖全部 11 个生成器。
-    /// 根据类的特征（名称模式、属性、已有接口）智能推荐可用的 AutoCode 特性，
+    /// AutoCode 统一右键重构提供器 - 覆盖内置 11 个生成器 + 用户自定义配方。
+    /// 通过 ICodeGenRecipe 接口统一管理，根据类特征智能推荐可用配方。
     /// 开发者无需记忆任何 Attribute 名称，Ctrl+. 即可一键添加。
     /// 
-    /// 推断规则：
+    /// 推断规则（由 BuiltInRecipes 定义）：
     ///   含 Id 属性 / 实体类 → AutoEntity、AutoDTO、MapFrom、AutoCrud、AutoValidator
     ///   名称匹配 *Service   → AutoInterface、AutoController、AutoLog、AutoTest、AutoIntercept、IScoped
     ///   名称匹配 *Request   → AutoValidator、AutoDTO
     ///   名称匹配 *Dto       → MapFrom
     ///   名称匹配 *Repository→ AutoInterface、IScoped
     ///   任意 public 方法     → AutoIntercept + 生成 Handler
+    ///   自定义配方（autocode.json customGenerators）→ 动态注册
     /// </summary>
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(AutoCodeRefactoringProvider)), Shared]
     public class AutoCodeRefactoringProvider : CodeRefactoringProvider
@@ -60,117 +62,118 @@ namespace AutoCode.Analyzers.CodeFixes
             var classSymbol = semanticModel.GetDeclaredSymbol(classDecl, context.CancellationToken);
             if (classSymbol == null) return;
 
-            var className = classSymbol.Name;
-            var existingAttrs = GetExistingAttributes(classDecl);
-            var hasIdProperty = classDecl.Members.OfType<PropertyDeclarationSyntax>()
-                .Any(p => p.Identifier.Text == "Id" || p.Identifier.Text.EndsWith("Id"));
-            var hasDataAnnotations = classDecl.Members.OfType<PropertyDeclarationSyntax>()
-                .Any(p => p.AttributeLists.SelectMany(a => a.Attributes).Any(a =>
+            // 构建类分析信息
+            var classInfo = BuildClassAnalysisInfo(classDecl, classSymbol);
+
+            // ── 1. 内置配方推荐 ──
+            foreach (var recipe in BuiltInRecipes.All)
+            {
+                if (!recipe.IsApplicable(classInfo)) continue;
+                if (recipe.IsAlreadyApplied(classInfo)) continue;
+
+                if (recipe.Name == "scoped")
                 {
-                    var n = a.Name.ToString();
-                    return n is "Required" or "MaxLength" or "Range" or "MinLength" or "EmailAddress" or "Url";
-                }));
-
-            var isService = className.EndsWith("Service");
-            var isRequest = className.EndsWith("Request") || className.EndsWith("Command");
-            var isDto = className.EndsWith("Dto") || className.EndsWith("Response");
-            var isRepository = className.EndsWith("Repository");
-            var isEntity = hasIdProperty && !isService && !isRequest && !isDto && !isRepository;
-
-            // ─── 实体类推荐 ───
-            if (isEntity)
-            {
-                if (!existingAttrs.Contains("AutoEntity"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoEntity",
-                        $"🚀 [AutoEntity] 一键全链路（DTO+Mapper+Validator+API+DI）");
-
-                if (!existingAttrs.Contains("AutoDTO"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoDTO",
-                        $"📋 [AutoDTO] 生成 DTO + FromEntity/ToEntity");
-
-                if (!existingAttrs.Contains("AutoCrud"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoCrud",
-                        $"🔄 [AutoCrud] 生成 CRUD 全套（Service+Repository+Controller）");
-
-                if (hasDataAnnotations && !existingAttrs.Contains("AutoValidator"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoValidator",
-                        $"✅ [AutoValidator] 生成编译时验证代码");
+                    // IScoped 是接口而非 Attribute
+                    RegisterAddInterface(context, root, classDecl, "IScoped", $"💉 {recipe.Title}");
+                }
+                else if (recipe.Name == "autoController" && recipe is AutoControllerRecipe ctrlRecipe)
+                {
+                    // AutoController 需要动态参数
+                    var arg = ctrlRecipe.GetArgument(classInfo);
+                    RegisterAddAttributeWithParam(context, root, classDecl, recipe.AttributeName, arg, $"{recipe.Icon} {recipe.Title}");
+                }
+                else if (!string.IsNullOrEmpty(recipe.AttributeArgument))
+                {
+                    RegisterAddAttributeWithParam(context, root, classDecl, recipe.AttributeName,
+                        recipe.AttributeArgument, $"{recipe.Icon} {recipe.Title}");
+                }
+                else
+                {
+                    RegisterAddAttribute(context, root, classDecl, recipe.AttributeName, $"{recipe.Icon} {recipe.Title}");
+                }
             }
 
-            // ─── Service 类推荐 ───
-            if (isService)
+            // ── 2. 自定义配方推荐（从 autocode.json 加载）──
+            var customRecipes = await LoadCustomRecipesAsync(context.Document);
+            foreach (var recipe in customRecipes)
             {
-                if (!existingAttrs.Contains("AutoInterface"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoInterface",
-                        $"🔌 [AutoInterface] 自动提取接口");
+                if (!recipe.IsApplicable(classInfo)) continue;
+                if (recipe.IsAlreadyApplied(classInfo)) continue;
 
-                if (!existingAttrs.Contains("AutoController"))
-                    RegisterAddAttributeWithParam(context, root, classDecl, "AutoController",
-                        $"RoutePrefix = \"api/{className.Replace("Service", "").ToLower()}s\"",
-                        $"🌐 [AutoController] 生成 REST API Controller");
-
-                if (!existingAttrs.Contains("AutoLog"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoLog",
-                        $"📝 [AutoLog] 生成日志装饰器");
-
-                if (!existingAttrs.Contains("AutoTest"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoTest",
-                        $"🧪 [AutoTest] 生成单元测试桩");
-
-                if (!existingAttrs.Contains("AutoIntercept"))
-                    RegisterAddAttributeWithParam(context, root, classDecl, "AutoIntercept",
-                        "InterceptType.Log | InterceptType.Metrics",
-                        $"⚡ [AutoIntercept] 添加 AOP 拦截管线");
-
-                // IScoped DI 标记
-                if (!ImplementsInterface(classSymbol, "IScoped") && !ImplementsInterface(classSymbol, "ISingleton"))
-                    RegisterAddInterface(context, root, classDecl, "IScoped",
-                        $"💉 实现 IScoped（编译时 DI 自动注册）");
+                if (!string.IsNullOrEmpty(recipe.AttributeArgument))
+                {
+                    RegisterAddAttributeWithParam(context, root, classDecl, recipe.AttributeName,
+                        recipe.AttributeArgument, recipe.Title);
+                }
+                else
+                {
+                    RegisterAddAttribute(context, root, classDecl, recipe.AttributeName, recipe.Title);
+                }
             }
+        }
 
-            // ─── Request/Command 类推荐 ───
-            if (isRequest)
+        private static ClassAnalysisInfo BuildClassAnalysisInfo(
+            ClassDeclarationSyntax classDecl, INamedTypeSymbol classSymbol)
+        {
+            var info = new ClassAnalysisInfo
             {
-                if (!existingAttrs.Contains("AutoValidator"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoValidator",
-                        $"✅ [AutoValidator] 生成编译时验证代码");
+                ClassName = classSymbol.Name,
+                HasPublicMethods = classDecl.Members.OfType<MethodDeclarationSyntax>()
+                    .Any(m => m.Modifiers.Any(SyntaxKind.PublicKeyword)),
+                HasIdProperty = classDecl.Members.OfType<PropertyDeclarationSyntax>()
+                    .Any(p => p.Identifier.Text == "Id" || p.Identifier.Text.EndsWith("Id")),
+                HasDataAnnotations = classDecl.Members.OfType<PropertyDeclarationSyntax>()
+                    .Any(p => p.AttributeLists.SelectMany(a => a.Attributes).Any(a =>
+                    {
+                        var n = a.Name.ToString();
+                        return n is "Required" or "MaxLength" or "Range" or "MinLength" or "EmailAddress" or "Url";
+                    }))
+            };
 
-                if (!existingAttrs.Contains("AutoDTO"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoDTO",
-                        $"📋 [AutoDTO] 生成 DTO");
+            foreach (var attr in GetExistingAttributes(classDecl))
+                info.ExistingAttributes.Add(attr);
+
+            foreach (var prop in classDecl.Members.OfType<PropertyDeclarationSyntax>())
+                info.PropertyNames.Add(prop.Identifier.Text);
+
+            foreach (var method in classDecl.Members.OfType<MethodDeclarationSyntax>())
+                info.MethodNames.Add(method.Identifier.Text);
+
+            foreach (var iface in classSymbol.Interfaces)
+                info.Interfaces.Add(iface.Name);
+            foreach (var iface in classSymbol.AllInterfaces)
+                info.Interfaces.Add(iface.Name);
+
+            return info;
+        }
+
+        private static async Task<List<ICodeGenRecipe>> LoadCustomRecipesAsync(Document document)
+        {
+            try
+            {
+                var projectDir = System.IO.Path.GetDirectoryName(document.Project.FilePath);
+                if (string.IsNullOrEmpty(projectDir)) return new List<ICodeGenRecipe>();
+
+                // 向上遍历目录树查找 autocode.json（可能位于仓库根目录而非项目目录）
+                var searchDir = projectDir;
+                while (!string.IsNullOrEmpty(searchDir))
+                {
+                    var configPath = System.IO.Path.Combine(searchDir, "autocode.json");
+                    if (System.IO.File.Exists(configPath))
+                    {
+                        var json = System.IO.File.ReadAllText(configPath);
+                        return CustomRecipeAdapter.LoadFromConfigJson(json);
+                    }
+                    var parent = System.IO.Directory.GetParent(searchDir)?.FullName;
+                    if (string.IsNullOrEmpty(parent) || parent == searchDir) break;
+                    searchDir = parent;
+                }
+
+                return new List<ICodeGenRecipe>();
             }
-
-            // ─── Dto/Response 类推荐 ───
-            if (isDto)
+            catch
             {
-                if (!existingAttrs.Contains("MapFrom"))
-                    RegisterAddAttribute(context, root, classDecl, "MapFrom",
-                        $"🗺️ [MapFrom] 生成编译时对象映射");
-            }
-
-            // ─── Repository 类推荐 ───
-            if (isRepository)
-            {
-                if (!existingAttrs.Contains("AutoInterface"))
-                    RegisterAddAttribute(context, root, classDecl, "AutoInterface",
-                        $"🔌 [AutoInterface] 自动提取接口");
-
-                if (!ImplementsInterface(classSymbol, "IScoped"))
-                    RegisterAddInterface(context, root, classDecl, "IScoped",
-                        $"💉 实现 IScoped（编译时 DI 自动注册）");
-            }
-
-            // ─── 通用推荐（任何类都可用）───
-            if (!isEntity && !isService && !isRequest && !isDto && !isRepository)
-            {
-                if (!existingAttrs.Contains("AutoInterface") && classDecl.Members.OfType<MethodDeclarationSyntax>().Any())
-                    RegisterAddAttribute(context, root, classDecl, "AutoInterface",
-                        $"🔌 [AutoInterface] 自动提取接口");
-
-                if (!existingAttrs.Contains("AutoIntercept"))
-                    RegisterAddAttributeWithParam(context, root, classDecl, "AutoIntercept",
-                        "InterceptType.Log | InterceptType.Metrics",
-                        $"⚡ [AutoIntercept] 添加 AOP 拦截管线");
+                return new List<ICodeGenRecipe>();
             }
         }
 

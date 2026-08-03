@@ -110,6 +110,38 @@ V2 支持项目级 JSON 配置文件，精细控制每个插件的行为：
 
 > V1 生成器已合并至 `AutoCode.Generators/V1/`，与 V2 插件统一打包；DotLiquid 模板生成器保留在独立项目 `AutoCode.DotTemplate.SourceGenerator` 中。
 
+### 自定义代码生成配方（V2.2 新增）
+
+用户可通过 `autocode.json` 的 `customGenerators` 配置 + Liquid 模板定义自己的代码生成规则，无需编写额外的 Source Generator：
+
+```json
+{
+  "customGenerators": [
+    {
+      "name": "auditService",
+      "title": "添加审计日志服务",
+      "icon": "📝",
+      "trigger": {
+        "classPattern": "*Service",
+        "attributeName": "AutoAudit"
+      },
+      "output": {
+        "template": "templates/AuditService.liquid",
+        "fileName": "{ClassName}Audit.g.cs"
+      }
+    }
+  ]
+}
+```
+
+两种触发方式：
+- **隐式匹配**：类名符合 `classPattern`（如 `*Service`）自动生成
+- **显式标记**：`[CustomGenerate("auditService")]` 或自定义 Attribute 精准触发
+
+模板变量自动注入：`{{ ClassName }}`、`{{ Namespace }}`、`{% for method in Methods %}`、`{% if method.IsVoid %}` 等。
+
+Ctrl+. 右键推荐自动识别自定义配方，与内置 11 个生成器统一展示。
+
 ### 代码分析器
 
 | 诊断 ID | 严重性 | 触发条件 | 代码修复 |
@@ -578,18 +610,20 @@ AutoCode/
 │   ├── APP.WebAPI.Core/                  # 示例核心层
 │   ├── AutoCode.Tests/                   # 单元测试
 │   │
-│   ├── autocode.json                     # 插件配置文件
 │   ├── AutoCode.sln                      # 解决方案（11 个项目）
 │   └── .editorconfig                     # 代码规范
 │
+├── autocode.json                         # 全局插件配置 + 自定义配方（customGenerators）
 ├── samples/                              # 示例画廊（Before/After 对比）
 │   ├── 01-QuickStart/                    #   5分钟上手：一个标记生成全链路
 │   ├── 02-InterceptAOP/                  #   编译时 AOP 替代动态代理
 │   ├── 03-TypedMethodHandler/            #   强类型方法拦截器（各种参数类型场景）
 │   ├── 04-AopComparison/                 #   AOP 方案对比分析 + 性能基准测试
 │   └── README.md
-├── templates/                            # dotnet new 项目模板
-│   └── autocode-webapi/                  #   WebAPI + 全链路模板
+├── templates/                            # dotnet new 项目模板 + Liquid 配方模板
+│   ├── autocode-webapi/                  #   WebAPI + 全链路模板
+│   ├── AuditService.liquid              #   自定义配方示例：审计日志服务
+│   └── Repository.liquid                 #   自定义配方示例：仓储实现
 ├── tools/                                # 开发工具
 │   └── vscode-extension/                 #   VS Code 扩展 + 12 个 Snippet
 ├── scripts/                              # 自动化脚本
@@ -654,6 +688,21 @@ nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.n
 
 ## 技术亮点
 
+### V2.3 新增
+
+- **自定义代码生成框架**: 通过 autocode.json `customGenerators` 配置 + Liquid 模板定义自己的生成规则
+- **CustomRecipeGenerator**: 一个 Source Generator 处理所有自定义配方，支持 Attribute 触发和类名模式匹配
+- **[CustomGenerate]**: 通用标记属性，配合配方名精准触发自定义生成
+- **轻量级模板引擎**: 支持 `{{ variable }}`、`{% for %}`、`{% if %}` 等 Liquid 语法子集
+- **Ctrl+. 动态识别**: RefactoringProvider 自动加载自定义配方，与内置生成器统一展示
+- **ICodeGenRecipe 接口**: 内置 11 个生成器 + 自定义配方统一管理
+
+### V2.2 新增
+
+- **架构精简**: 40→11 个程序集合并，项目职责明确分层
+- **Ctrl+. 全功能右键生成**: 统一 AutoCodeRefactoringProvider 覆盖全部 11 个生成器
+- **类特征智能推荐**: 实体/Service/Request/Dto/Repository 自动识别
+
 ### V2.1 新增
 
 - **编译时 AOP**: [AutoIntercept] 替代 Castle DynamicProxy，零反射、可调试、AOT 兼容
@@ -703,6 +752,7 @@ nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.n
 
 | 版本 | 说明 |
 |------|------|
+| **2.3.0** | **自定义代码生成框架：autocode.json customGenerators 配置 + Liquid 模板引擎 + CustomRecipeGenerator 统一 Source Generator + [CustomGenerate] 通用标记 + Ctrl+. 动态识别自定义配方 + 示例模板（AuditService/Repository）** |
 | **2.2.0** | **架构精简：40→11 个程序集合并（11 个 V1 SG + 11 个 V2 Plugins → AutoCode.Generators 统一项目）+ 统一 Ctrl+. 右键重构覆盖全部 11 个生成器 + 类特征智能推荐 + 一键 Handler 生成 + 项目职责明确分层** |
 | **2.1.0** | **智能化升级：[AutoIntercept] 编译时 AOP 拦截器（替代动态代理）+ 强类型 Args 自动生成 + IMethodHandler/IAsyncMethodHandler 两层 Handler + 方法级精准拦截 + Ctrl+. 一键生成 Handler + AC9100 开发者感知 + 性能基准测试（vs Castle）+ 智能 CodeFix + 配置推荐引擎 + 4 个示例 + 一键安装 + dotnet new 模板 + VS Code 扩展** |
 | **2.0.0** | 架构升级：插件化引擎 (AutoCode.Engine) + Pipeline 管线 + Fluent CodeBuilder + 约定引擎 + JSON 配置 + 插件 SDK + CascadePlugin 级联生成 + [MapFrom]/[AutoEntity] 新特性 |

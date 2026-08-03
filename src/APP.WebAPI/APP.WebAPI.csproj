@@ -7,7 +7,16 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <!-- 启用 AOT 兼容性分析，验证生成代码无反射依赖 -->
     <IsAotCompatible>true</IsAotCompatible>
+    <!-- 将 autocode.json 内容传递给 Source Generator（位于仓库根目录） -->
+    <AutoCode_ConfigJson>$([System.IO.File]::ReadAllText('$(MSBuildThisFileDirectory)..\..\autocode.json'))</AutoCode_ConfigJson>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 暴露给 Source Generator 读取 -->
+    <CompilerVisibleProperty Include="AutoCode_ConfigJson" />
+    <!-- 模板文件作为 AdditionalFiles 传递给 CustomRecipeGenerator（位于仓库根目录 templates/） -->
+    <AdditionalFiles Include="..\..\templates\*.liquid" />
+  </ItemGroup>
 
   <ItemGroup>
     <!-- 统一代码生成器（11合1：接口/映射/DTO/验证/Controller/DI/日志/测试/CRUD/级联/拦截）-->

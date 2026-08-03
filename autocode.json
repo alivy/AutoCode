@@ -68,5 +68,37 @@
     "logging": { "enabled": true },
     "cascade": { "enabled": true },
     "intercept": { "enabled": true }
-  }
+  },
+  "customGenerators": [
+    {
+      "name": "auditService",
+      "title": "添加审计日志服务",
+      "icon": "📝",
+      "category": "Service",
+      "trigger": {
+        "classPattern": "*Service",
+        "attributeName": "AutoAudit"
+      },
+      "output": {
+        "template": "templates/AuditService.liquid",
+        "fileName": "{ClassName}Audit.g.cs",
+        "namespace": "{SourceNamespace}.Audit"
+      }
+    },
+    {
+      "name": "repositoryPattern",
+      "title": "生成 Repository 实现",
+      "icon": "🗂️",
+      "category": "Entity",
+      "trigger": {
+        "requiredProperties": ["Id"],
+        "attributeName": "AutoRepository"
+      },
+      "output": {
+        "template": "templates/Repository.liquid",
+        "fileName": "{ClassName}Repository.g.cs",
+        "namespace": "{SourceNamespace}.Data"
+      }
+    }
+  ]
 }
