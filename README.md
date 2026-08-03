@@ -42,9 +42,11 @@ V2 将所有代码生成能力统一为**插件**，通过管线（Pipeline）�
 | `DiagnosticCollector` | 诊断收集器：统一错误/警告报告 |
 | `AutoCodeConfig` | JSON 配置读取（autocode.json） |
 
-### 插件开发 SDK (AutoCode.Plugin.Sdk)
+### 插件开发 SDK（规划中）
 
-第三方开发者可基于 SDK 开发自定义生成插件：
+> 原 `AutoCode.Plugin.Sdk` 已合并归档，第三方插件 SDK 将在后续版本以 NuGet 包形式独立发布。
+
+第三方开发者未来可基于 SDK 开发自定义生成插件（示例代码为规划接口）：
 
 ```csharp
 public class MyPlugin : GenerationPluginBase
@@ -106,7 +108,7 @@ V2 支持项目级 JSON 配置文件，精细控制每个插件的行为：
 | **CascadePlugin** | `[AutoEntity]` | 级联生成：一个实体自动触发 DTO + Mapper + Validation + Controller 全链路 |
 | **InterceptPlugin** | `[AutoIntercept]` | 编译时 AOP 拦截器：Log/Cache/Retry/CircuitBreaker/Metrics/Throttle 管线，替代动态代理 |
 
-> V1 生成器（DotTemplateGenerator 等）仍保留在独立项目中，保持向后兼容。
+> V1 生成器已合并至 `AutoCode.Generators/V1/`，与 V2 插件统一打包；DotLiquid 模板生成器保留在独立项目 `AutoCode.DotTemplate.SourceGenerator` 中。
 
 ### 代码分析器
 
@@ -701,6 +703,7 @@ nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.n
 
 | 版本 | 说明 |
 |------|------|
+| **2.2.0** | **架构精简：40→11 个程序集合并（11 个 V1 SG + 11 个 V2 Plugins → AutoCode.Generators 统一项目）+ 统一 Ctrl+. 右键重构覆盖全部 11 个生成器 + 类特征智能推荐 + 一键 Handler 生成 + 项目职责明确分层** |
 | **2.1.0** | **智能化升级：[AutoIntercept] 编译时 AOP 拦截器（替代动态代理）+ 强类型 Args 自动生成 + IMethodHandler/IAsyncMethodHandler 两层 Handler + 方法级精准拦截 + Ctrl+. 一键生成 Handler + AC9100 开发者感知 + 性能基准测试（vs Castle）+ 智能 CodeFix + 配置推荐引擎 + 4 个示例 + 一键安装 + dotnet new 模板 + VS Code 扩展** |
 | **2.0.0** | 架构升级：插件化引擎 (AutoCode.Engine) + Pipeline 管线 + Fluent CodeBuilder + 约定引擎 + JSON 配置 + 插件 SDK + CascadePlugin 级联生成 + [MapFrom]/[AutoEntity] 新特性 |
 | 1.3.0 | 深度提效：+3 生成器 (AutoTest/AutoLog/AutoCrud)、+2 分析器 (AC004/AC006)、Async/XML Doc/Nullable/Swagger 智能化增强 |
