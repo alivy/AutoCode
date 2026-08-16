@@ -61,8 +61,8 @@ namespace AutoCode.Validation
             var className = classSymbol.Name;
             var validatorClassName = $"{className}Validator";
 
-            // 收集带验证特性的属性
-            var validationRules = new List<(string PropName, string PropType, List<ValidationRule> Rules)>();
+            // 收集带验证特性的属性（额外记录是否为非空值类型，用于跳过无意义的 null 检查）
+            var validationRules = new List<(string PropName, string PropType, bool IsNonNullableValueType, List<ValidationRule> Rules)>();
 
             foreach (var member in classSymbol.GetMembers().OfType<IPropertySymbol>())
             {
@@ -94,6 +94,7 @@ namespace AutoCode.Validation
                     validationRules.Add((
                         member.Name,
                         member.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        member.Type.IsValueType && member.Type.NullableAnnotation != Microsoft.CodeAnalysis.NullableAnnotation.Annotated,
                         rules));
                 }
             }
@@ -128,11 +129,11 @@ namespace AutoCode.Validation
             sb.AppendLine($"{indent}    {{");
             sb.AppendLine($"{indent}        var errors = new List<string>();");
 
-            foreach (var (propName, propType, rules) in validationRules)
+            foreach (var (propName, propType, isNonNullableValueType, rules) in validationRules)
             {
                 foreach (var rule in rules)
                 {
-                    GenerateValidationCheck(sb, $"{indent}        ", propName, propType, rule);
+                    GenerateValidationCheck(sb, $"{indent}        ", propName, propType, isNonNullableValueType, rule);
                 }
             }
 
@@ -150,11 +151,14 @@ namespace AutoCode.Validation
             };
         }
 
-        private static void GenerateValidationCheck(StringBuilder sb, string indent, string propName, string propType, ValidationRule rule)
+        private static void GenerateValidationCheck(StringBuilder sb, string indent, string propName, string propType, bool isNonNullableValueType, ValidationRule rule)
         {
             switch (rule.Name)
             {
                 case "Required":
+                    // 非空值类型（int/DateTime 等）不可能为 null，[Required] 恒通过，跳过生成避免 CS0472
+                    if (isNonNullableValueType)
+                        break;
                     if (propType == "string" || propType.Contains("string"))
                         sb.AppendLine($"{indent}if (string.IsNullOrEmpty(input.{propName})) errors.Add(\"{propName} is required.\");");
                     else

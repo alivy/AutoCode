@@ -41,7 +41,7 @@ namespace AutoCode.Plugins.Interface
                 .Where(static s => s != null && s.Members.Count > 0)
                 .Combine(configProvider);
 
-            context.RegisterSourceOutput(interfaceSources, static (spc, pair) =>
+            context.RegisterSourceOutput(AutoCode.Generators.V2Gate.Apply(context, interfaceSources), static (spc, pair) =>
             {
                 var info = pair.Left!;
                 var config = pair.Right;

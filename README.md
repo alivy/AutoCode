@@ -169,6 +169,21 @@ Ctrl+. 右键推荐自动识别自定义配方，与内置 11 个生成器统一
 </PropertyGroup>
 ```
 
+**V1 / V2 生成器切换：**
+
+V1 与 V2 生成器监听相同特性（如 `[AutoInterface]`、`[AutoDTO]`），为避免重复生成同一类型，**默认仅运行 V1**。如需启用 V2 生成器，在消费项目中设置：
+
+```xml
+<PropertyGroup>
+  <AutoCode_EnableV2>true</AutoCode_EnableV2>
+</PropertyGroup>
+<ItemGroup>
+  <CompilerVisibleProperty Include="AutoCode_EnableV2" />
+</ItemGroup>
+```
+
+> 注意：启用 V2 后请确保 V1 不处理相同特性，否则会产生 CS0101 重复定义错误。
+
 ## 技术架构
 
 - **运行时**: .NET 8.0 / netstandard2.0 (生成器)
@@ -580,10 +595,17 @@ public static partial class AutoDependencyInjection
 ## CLI 工具
 
 ```bash
-dotnet autocode list                  # 列出所有生成器和分析器
-dotnet autocode init [path]           # 初始化模板目录 + 示例模板
-dotnet autocode validate-templates    # 验证 .dot 模板语法
+dotnet autocode list                        # 列出全部生成器/分析器/插件及其状态
+dotnet autocode new entity <名称>           # 交互式创建实体（可选 CRUD 全链路/测试/验证）
+dotnet autocode generate [--preview]        # 执行代码生成（--preview 仅预览不写入）
+dotnet autocode analyze [路径]              # 分析项目结构，给出 AutoCode 优化建议
+dotnet autocode doctor                      # 诊断配置与环境（包引用/配置文件/常见错误）
+dotnet autocode templates list              # 列出可用代码模板
+dotnet autocode templates install <模板>    # 安装模板到当前项目
+dotnet autocode init [路径]                 # 初始化配置（autocode.json + 模板目录）
 ```
+
+`new entity` 常用选项：`--with-crud`（默认 true）、`--with-tests`、`--with-validation`（默认 true）、`--output <目录>`。
 
 ## 项目结构
 
@@ -608,9 +630,10 @@ AutoCode/
 │   │── ── 示例 + 测试 ──
 │   ├── APP.WebAPI/                       # 综合示例（DTO+验证+Controller+DI+AOP+拦截）
 │   ├── APP.WebAPI.Core/                  # 示例核心层
-│   ├── AutoCode.Tests/                   # 单元测试
+│   ├── AutoCode.Tests/                   # 单元测试（V1 生成器 + 分析器，37 个）
+│   ├── AutoCode.Tests.V2/                # V2 引擎与插件测试（21 个）
 │   │
-│   ├── AutoCode.sln                      # 解决方案（11 个项目）
+│   ├── AutoCode.sln                      # 解决方案（12 个项目）
 │   └── .editorconfig                     # 代码规范
 │
 ├── autocode.json                         # 全局插件配置 + 自定义配方（customGenerators）
@@ -676,8 +699,8 @@ dotnet test src/AutoCode.Tests.V2/AutoCode.Tests.V2.csproj
 # 打包
 dotnet build src/AutoCode.Extensions.SourceGenerator/AutoCode.SourceGenerator.Extensions.csproj -c Publish
 
-# 发布
-nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.nuget.org/v3/index.json
+# 发布（将 2.3.0 替换为当前版本）
+nuget push src/.nuget/AM.AutoCode.2.3.0.nupkg YOUR_API_KEY -Source https://api.nuget.org/v3/index.json
 ```
 
 ### CI/CD
@@ -731,7 +754,7 @@ nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.n
 - **约定引擎**: ConventionEngine 按命名模式（*Service / *Dto）自动发现类型
 - **JSON 配置**: autocode.json 精细控制每个插件行为，支持项目级覆盖
 - **级联生成**: CascadePlugin 一个 [AutoEntity] 触发 DTO + Mapper + Validation + Controller 全链路
-- **插件 SDK**: AutoCode.Plugin.Sdk 提供 PluginDevTools，第三方可开发自定义插件
+- **插件 SDK**: 原 `AutoCode.Plugin.Sdk` 已合并归档，第三方插件 SDK 将在后续版本以 NuGet 包形式独立发布
 
 ### 通用
 
@@ -760,6 +783,17 @@ nuget push src/.nuget/AM.AutoCode.1.2.0.nupkg YOUR_API_KEY -Source https://api.n
 | 1.2.0 | 全面扩展：+4 生成器 (DTO/验证/Controller/DI)、+3 分析器、+2 CodeFix、CLI 工具、CI/CD、MSBuild 配置、23 个测试 |
 | 1.1.x | 架构重构：IIncrementalGenerator 迁移、增量缓存、泛型/属性支持 |
 | 1.0.x | ISourceGenerator 初始版本 |
+
+## 文档
+
+| 文档 | 说明 |
+|------|------|
+| [CHANGELOG.md](CHANGELOG.md) | 版本变更日志 |
+| [docs/configuration.md](docs/configuration.md) | autocode.json 全节点配置参考 + MSBuild 属性映射 |
+| [docs/cli.md](docs/cli.md) | CLI 全部命令详细参考 |
+| [docs/troubleshooting.md](docs/troubleshooting.md) | 常见问题与故障排除（生成器不生效/重复定义/警告处理） |
+| [docs/v1-v2-migration.md](docs/v1-v2-migration.md) | V1/V2 生成器差异对照与迁移指南 |
+| [samples/](samples/README.md) | 示例画廊（Before/After 对比） |
 
 ## License
 

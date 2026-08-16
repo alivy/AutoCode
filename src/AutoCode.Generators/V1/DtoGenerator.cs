@@ -89,11 +89,14 @@ namespace AutoCode.Dto
             sb.AppendLine($"{indent}public partial class {dtoClassName}");
             sb.AppendLine($"{indent}{{");
 
-            // 生成属性
+            // 生成属性（非空引用类型添加 = default! 初始化，消除 CS8618）
             foreach (var prop in properties)
             {
                 var typeName = prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                sb.AppendLine($"{indent}    public {typeName} {prop.Name} {{ get; set; }}");
+                var initializer = prop.Type.IsReferenceType && prop.Type.NullableAnnotation != Microsoft.CodeAnalysis.NullableAnnotation.Annotated
+                    ? " = default!;"
+                    : "";
+                sb.AppendLine($"{indent}    public {typeName} {prop.Name} {{ get; set; }}{initializer}");
             }
 
             sb.AppendLine();

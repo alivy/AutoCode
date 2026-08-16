@@ -19,12 +19,8 @@
   <ItemGroup>
     <ProjectReference Include="..\AutoCode.Engine\AutoCode.Engine.csproj" />
     <ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
-    <ProjectReference Include="..\AutoCode.Plugin.Sdk\AutoCode.Plugin.Sdk.csproj" />
-    <ProjectReference Include="..\AutoCode.Plugins.Mapper\AutoCode.Plugins.Mapper.csproj" />
-    <ProjectReference Include="..\AutoCode.Plugins.DependencyInjection\AutoCode.Plugins.DependencyInjection.csproj" />
-    <ProjectReference Include="..\AutoCode.Plugins.Validation\AutoCode.Plugins.Validation.csproj" />
-    <ProjectReference Include="..\AutoCode.Plugins.Dto\AutoCode.Plugins.Dto.csproj" />
-    <ProjectReference Include="..\AutoCode.Plugins.Interface\AutoCode.Plugins.Interface.csproj" />
+    <!-- V2 插件已合并到 AutoCode.Generators\V2\（命名空间 AutoCode.Plugins.* 不变） -->
+    <ProjectReference Include="..\AutoCode.Generators\AutoCode.Generators.csproj" />
   </ItemGroup>
 
 </Project>

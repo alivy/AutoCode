@@ -346,10 +346,19 @@ namespace AutoCode.Intercept
                         argsName, returnTypeShort, paramDesc));
                 }
 
+                // Nullable 感知的类型显示格式（保留 string?/OrderInfo? 等可空注解，消除生成代码 CS8603）
+                var nullableFormat = new SymbolDisplayFormat(
+                    globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.Included,
+                    typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier
+                        | SymbolDisplayMiscellaneousOptions.UseSpecialTypes
+                        | SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
                 info.Methods.Add(new InterceptMethodInfo
                 {
                     Name = m.Name,
-                    ReturnType = m.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    ReturnType = m.ReturnType.ToDisplayString(nullableFormat),
                     IsAsync = IsAsyncReturn(m.ReturnType),
                     IsVoid = m.ReturnType.SpecialType == SpecialType.System_Void,
                     IsTaskNoResult = m.ReturnType.ToDisplayString() == "System.Threading.Tasks.Task",
@@ -359,7 +368,7 @@ namespace AutoCode.Intercept
                     Parameters = m.Parameters.Select(p => new ParamInfo
                     {
                         Name = p.Name,
-                        Type = p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        Type = p.Type.ToDisplayString(nullableFormat),
                         IsNullable = p.NullableAnnotation == NullableAnnotation.Annotated
                     }).ToList()
                 });
@@ -663,9 +672,11 @@ namespace AutoCode.Intercept
             {
                 var cacheKey = info.CacheKeyPrefix ?? $"{info.ClassName}.{method.Name}";
                 var innerType = method.IsAsync ? ExtractAsyncInnerType(returnType) : returnType;
+                // C# 模式匹配不允许可空注解类型（OrderInfo?），is 表达式需使用基础类型（消除 CS8116）
+                var patternType = innerType.TrimEnd('?');
                 sb.AppendLine($"{b}// ─── 缓存（Before: 命中短路）───");
                 sb.AppendLine($"{b}var __cacheKey = $\"{cacheKey}:{string.Join(":", method.Parameters.Select(p => $"{{{p.Name}}}"))}\";");
-                sb.AppendLine($"{b}if (_cache.TryGetValue(__cacheKey, out object? __cachedObj) && __cachedObj is {innerType} __cached)");
+                sb.AppendLine($"{b}if (_cache.TryGetValue(__cacheKey, out object? __cachedObj) && __cachedObj is {patternType} __cached)");
                 sb.AppendLine($"{b}    return __cached;");
                 sb.AppendLine();
             }

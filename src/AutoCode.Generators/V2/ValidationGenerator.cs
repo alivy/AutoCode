@@ -33,7 +33,7 @@ namespace AutoCode.Plugins.Validation
                     transform: static (ctx, ct) => GenerateValidator(ctx, ct))
                 .Where(static s => s != null);
 
-            context.RegisterSourceOutput(validatorSources, static (spc, source) =>
+            context.RegisterSourceOutput(AutoCode.Generators.V2Gate.Apply(context, validatorSources), static (spc, source) =>
             {
                 spc.AddSource(source!.FileName, SourceText.From(source.Content, Encoding.UTF8));
             });

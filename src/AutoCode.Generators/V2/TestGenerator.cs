@@ -30,7 +30,7 @@ namespace AutoCode.Plugins.Testing
                     transform: static (ctx, ct) => ExtractTestInfo(ctx, ct))
                 .Where(static s => s != null);
 
-            context.RegisterSourceOutput(testSources, static (spc, info) =>
+            context.RegisterSourceOutput(AutoCode.Generators.V2Gate.Apply(context, testSources), static (spc, info) =>
             {
                 var output = GenerateTests(info!);
                 if (output != null)

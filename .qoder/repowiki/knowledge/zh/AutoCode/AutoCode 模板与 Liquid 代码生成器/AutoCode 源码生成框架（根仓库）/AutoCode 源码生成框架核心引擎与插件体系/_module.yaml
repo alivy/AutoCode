@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: 381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/26f59518-4d37-4750-ba55-ca7bb4be93ac
+title: AutoCode 源码生成框架核心引擎与插件体系
+scope:
+    - src/
+source_files: []
+depends_on: []
+related_to: []

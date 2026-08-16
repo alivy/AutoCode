@@ -12,9 +12,9 @@ namespace APP.WebAPI.Core.Application
     {
 
         /// <summary>
-        /// 配置对象
+        /// 配置对象（由 ConfigureApplication 在应用启动时赋值）
         /// </summary>
-        public static IConfiguration Configuration;
+        public static IConfiguration Configuration = null!;
 
         /// <summary>
         /// 有效程序集中的类型
@@ -28,7 +28,7 @@ namespace APP.WebAPI.Core.Application
         /// </summary>
         static AppCore()
         {
-            var assemblies = DependencyContext.Default.RuntimeLibraries
+            var assemblies = DependencyContext.Default!.RuntimeLibraries
                              .Where(r => r.Type == "project" || r.Type == "package" && r.Name.StartsWith("APP."))
                              .Select(r => AssemblyLoadContext.Default.LoadFromAssemblyName(new AssemblyName(r.Name)))
                              .ToHashSet();

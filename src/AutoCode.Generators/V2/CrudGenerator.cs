@@ -32,7 +32,7 @@ namespace AutoCode.Plugins.Crud
                 .Where(static s => s != null)
                 .SelectMany(static (info, _) => GenerateAllFiles(info!));
 
-            context.RegisterSourceOutput(crudSources, static (spc, file) =>
+            context.RegisterSourceOutput(AutoCode.Generators.V2Gate.Apply(context, crudSources), static (spc, file) =>
             {
                 spc.AddSource(file.FileName, SourceText.From(file.Content, Encoding.UTF8));
             });

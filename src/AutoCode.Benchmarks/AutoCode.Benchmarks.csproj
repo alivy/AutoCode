@@ -18,7 +18,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
-    <ProjectReference Include="..\AutoCode.Intercept\AutoCode.Intercept.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+    <!-- InterceptGenerator 已合并到 AutoCode.Generators\V1\（命名空间 AutoCode.Intercept 不变） -->
+    <ProjectReference Include="..\AutoCode.Generators\AutoCode.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

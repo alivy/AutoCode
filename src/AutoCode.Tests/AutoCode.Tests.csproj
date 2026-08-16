@@ -12,6 +12,8 @@
   <ItemGroup>
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+    <!-- 显式引用新版 Workspaces，解决 Testing SDK 1.1.2 传递旧版 1.0.1 导致的 MSB3277 程序集冲突 -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.11.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="1.1.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="1.1.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
@@ -26,11 +28,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AutoCode.Model\AutoCode.Model.csproj" />
-    <ProjectReference Include="..\AutoCodeGenerator\AutoCode.SourceGenerator.csproj" />
-    <ProjectReference Include="..\AutoCode.Map\AutoCode.Map.csproj" />
+    <!-- V1 生成器已合并到 AutoCode.Generators\V1\（命名空间不变），统一引用合并项目 -->
+    <ProjectReference Include="..\AutoCode.Generators\AutoCode.Generators.csproj" />
     <ProjectReference Include="..\AutoCode.Analyzers\AutoCode.Analyzers.csproj" />
-    <ProjectReference Include="..\AutoCode.DependencyInjection\AutoCode.DependencyInjection.csproj" />
-    <ProjectReference Include="..\AutoCode.Intercept\AutoCode.Intercept.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,17 @@
 		<Nullable>enable</Nullable>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<NoWarn>RS1035;RS1036</NoWarn>
+		<!-- 让 ProjectReference(OutputItemType="Analyzer") 的消费方同时加载依赖 DLL（AutoCode.Model），防止分析器运行时静默失效 -->
+		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
 	</PropertyGroup>
+
+	<Target Name="GetDependencyTargetPaths">
+		<ItemGroup>
+			<TargetPathWithTargetPlatformMoniker Include="@(ReferenceCopyLocalPaths)"
+				IncludeRuntimeDependency="false"
+				Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll' and !$([System.String]::Copy('%(ReferenceCopyLocalPaths.FileName)').StartsWith('Microsoft.CodeAnalysis'))" />
+		</ItemGroup>
+	</Target>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">

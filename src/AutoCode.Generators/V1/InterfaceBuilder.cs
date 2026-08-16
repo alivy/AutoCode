@@ -16,6 +16,10 @@ namespace AutoCode.SourceGenerator.InterfaceAutoBuilder
         {
             var sb = new StringBuilder();
 
+            // 生成器输出包含 string? 等可空注解，必须显式开启可空上下文（消除 CS8669）
+            sb.AppendLine("#nullable enable");
+            sb.AppendLine();
+
             // 生成 using 指令
             foreach (var ns in spec.Usings)
             {

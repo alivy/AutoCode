@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Diagnostics;
 using AutoCode.Plugins.Mapper;
 using AutoCode.Plugins.DependencyInjection;
 using AutoCode.Plugins.Validation;
@@ -13,6 +14,32 @@ namespace AutoCode.Tests.V2
     /// </summary>
     public class GeneratorTests
     {
+        /// <summary>
+        /// 测试用配置提供器：V2 生成器默认关闭（避免与 V1 重复生成），测试需显式启用 AutoCode_EnableV2。
+        /// </summary>
+        private sealed class EnableV2OptionsProvider : AnalyzerConfigOptionsProvider
+        {
+            private sealed class Options : AnalyzerConfigOptions
+            {
+                public override bool TryGetValue(string key, out string value)
+                {
+                    if (key == "build_property.AutoCode_EnableV2")
+                    {
+                        value = "true";
+                        return true;
+                    }
+                    value = "";
+                    return false;
+                }
+            }
+
+            private static readonly AnalyzerConfigOptions s_options = new Options();
+
+            public override AnalyzerConfigOptions GlobalOptions => s_options;
+            public override AnalyzerConfigOptions GetOptions(SyntaxTree tree) => s_options;
+            public override AnalyzerConfigOptions GetOptions(AdditionalText textFile) => s_options;
+        }
+
         private static (Compilation OutputCompilation, ImmutableArray<Diagnostic> Diagnostics) RunGenerator(
             IIncrementalGenerator generator, string source)
         {
@@ -33,7 +60,7 @@ namespace AutoCode.Tests.V2
                 references,
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            var driver = CSharpGeneratorDriver.Create(generator);
+            var driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, optionsProvider: new EnableV2OptionsProvider());
             driver = (CSharpGeneratorDriver)driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var diagnostics);
 
             return (outputCompilation, diagnostics);

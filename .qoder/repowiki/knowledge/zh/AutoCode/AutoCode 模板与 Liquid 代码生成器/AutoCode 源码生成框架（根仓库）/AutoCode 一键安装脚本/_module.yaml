@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: 381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/57a18075-5ab4-4d95-abe8-fe913fc9ffef
+title: AutoCode 一键安装脚本
+scope:
+    - scripts/
+source_files: []
+depends_on: []
+related_to: []

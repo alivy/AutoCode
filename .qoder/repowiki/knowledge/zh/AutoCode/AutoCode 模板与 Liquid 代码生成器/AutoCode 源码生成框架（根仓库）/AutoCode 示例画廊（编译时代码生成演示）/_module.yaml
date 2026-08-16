@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: 381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/c42f9b24-e194-4b3e-9fdb-1eee9c855257
+title: AutoCode 示例画廊（编译时代码生成演示）
+scope:
+    - samples/
+source_files: []
+depends_on: []
+related_to: []

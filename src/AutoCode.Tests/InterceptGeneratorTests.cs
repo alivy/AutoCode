@@ -338,7 +338,8 @@ namespace AutoCode.Tests
 
             Assert.Contains("AddInterceptedMyService", generated);
             Assert.Contains("IServiceCollection", generated);
-            Assert.Contains("Decorate", generated);
+            Assert.Contains("AddScoped<global::TestApp.IMyService>", generated);
+            Assert.Contains("new InterceptedMyService(", generated);
         }
 
         [Fact]

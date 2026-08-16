@@ -3,32 +3,58 @@ schema_version: 1
 locale: zh-CN
 branch: main
 nodes_managed: true
-exported_at: "2026-07-31T07:04:24Z"
+exported_at: "2026-08-16T02:37:39Z"
 modules:
     "":
-        dir_name: AutoCode 编译时代码生成框架（根仓库）
-        title: AutoCode 编译时代码生成框架（根仓库）
+        dir_name: AutoCode
+        title: AutoCode
         scope: []
         source_files: []
         children:
-            - samples
-            - scripts
-            - src
-            - templates
-            - tools
+            - 381c80a7-93c1-4fa8-aa13-fe99f761c94e
         depends_on: []
         related_to: []
-    samples:
-        dir_name: AutoCode 示例画廊（编译时代码生成演示）
-        title: AutoCode 示例画廊（编译时代码生成演示）
+    381c80a7-93c1-4fa8-aa13-fe99f761c94e:
+        dir_name: AutoCode 模板与 Liquid 代码生成器
+        title: AutoCode 模板与 Liquid 代码生成器
         scope:
-            - samples/
+            - templates/
+        source_files: []
+        children:
+            - 381c80a7-93c1-4fa8-aa13-fe99f761c94e/4bcb9ce5-a0dc-47ba-ac87-b0c301165351
+            - 381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b
+        depends_on: []
+        related_to: []
+    381c80a7-93c1-4fa8-aa13-fe99f761c94e/4bcb9ce5-a0dc-47ba-ac87-b0c301165351:
+        dir_name: AutoCode 声明式代码生成框架
+        title: AutoCode 声明式代码生成框架
+        scope: []
         source_files: []
         children: []
         depends_on: []
-        related_to:
-            - path: src
-    scripts:
+        related_to: []
+    381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b:
+        dir_name: AutoCode 源码生成框架（根仓库）
+        title: AutoCode 源码生成框架（根仓库）
+        scope: []
+        source_files: []
+        children:
+            - 381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/26f59518-4d37-4750-ba55-ca7bb4be93ac
+            - 381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/4306db46-c6ee-476a-8613-a4d096294b82
+            - 381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/57a18075-5ab4-4d95-abe8-fe913fc9ffef
+            - 381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/c42f9b24-e194-4b3e-9fdb-1eee9c855257
+        depends_on: []
+        related_to: []
+    381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/26f59518-4d37-4750-ba55-ca7bb4be93ac:
+        dir_name: AutoCode 源码生成框架核心引擎与插件体系
+        title: AutoCode 源码生成框架核心引擎与插件体系
+        scope:
+            - src/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []
+    381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/57a18075-5ab4-4d95-abe8-fe913fc9ffef:
         dir_name: AutoCode 一键安装脚本
         title: AutoCode 一键安装脚本
         scope:
@@ -36,33 +62,8 @@ modules:
         source_files: []
         children: []
         depends_on: []
-        related_to:
-            - path: src
-            - path: tools
-    src:
-        dir_name: AutoCode 代码生成引擎与插件体系
-        title: AutoCode 代码生成引擎与插件体系
-        scope:
-            - src/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: samples
-            - path: scripts
-            - path: templates
-    templates:
-        dir_name: AutoCode WebAPI 项目模板
-        title: AutoCode WebAPI 项目模板
-        scope:
-            - templates/
-        source_files: []
-        children: []
-        depends_on: []
-        related_to:
-            - path: src
-            - path: tools
-    tools:
+        related_to: []
+    381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/4306db46-c6ee-476a-8613-a4d096294b82:
         dir_name: VS Code 扩展（AutoCode 插件）
         title: VS Code 扩展（AutoCode 插件）
         scope:
@@ -70,6 +71,13 @@ modules:
         source_files: []
         children: []
         depends_on: []
-        related_to:
-            - path: scripts
-            - path: templates
+        related_to: []
+    381c80a7-93c1-4fa8-aa13-fe99f761c94e/c0876380-5952-4540-ad98-4df90394d49b/c42f9b24-e194-4b3e-9fdb-1eee9c855257:
+        dir_name: AutoCode 示例画廊（编译时代码生成演示）
+        title: AutoCode 示例画廊（编译时代码生成演示）
+        scope:
+            - samples/
+        source_files: []
+        children: []
+        depends_on: []
+        related_to: []

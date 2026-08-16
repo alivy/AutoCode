@@ -17,7 +17,7 @@ namespace AutoCode.DotTemplate.SourceGenerator
         /// <summary>
         /// 命名空间
         /// </summary>
-        public string NameSpace { get; set; }
+        public string NameSpace { get; set; } = string.Empty;
 
         /// <summary>
         /// ClassDeclarationSyntax
@@ -63,12 +63,12 @@ namespace AutoCode.DotTemplate.SourceGenerator
             /// <summary>
             /// 类名
             /// </summary>
-            public string DefName { get; set; }
+            public string DefName { get; set; } = string.Empty;
 
             /// <summary>
             /// 当前cs文件路径
             /// </summary>
-            public string ClassPath { get; set; }
+            public string ClassPath { get; set; } = string.Empty;
 
             /// <summary>
             /// 当前cs的备注
@@ -135,7 +135,7 @@ namespace AutoCode.DotTemplate.SourceGenerator
                 /// <summary>
                 /// 继承名称
                 /// </summary>
-                public string DefName { get; set; }
+                public string DefName { get; set; } = string.Empty;
 
                 public object ToLiquid()
                 {
@@ -151,7 +151,7 @@ namespace AutoCode.DotTemplate.SourceGenerator
                 /// <summary>
                 /// 特性名称
                 /// </summary>
-                public string DefName { get; set; }
+                public string DefName { get; set; } = string.Empty;
 
                 /// <summary>
                 /// 参数信息
@@ -184,11 +184,11 @@ namespace AutoCode.DotTemplate.SourceGenerator
                     /// <summary>
                     /// 参数类型
                     /// </summary>
-                    public string Type { get; set; }
+                    public string Type { get; set; } = string.Empty;
                     /// <summary>
                     /// 名称
                     /// </summary>
-                    public string DefName { get; set; }
+                    public string DefName { get; set; } = string.Empty;
 
                     public object ToLiquid()
                     {
@@ -210,17 +210,17 @@ namespace AutoCode.DotTemplate.SourceGenerator
                 /// <summary>
                 /// 修复符号
                 /// </summary>
-                public string Modifier { get; set; }
+                public string Modifier { get; set; } = string.Empty;
 
                 /// <summary>
                 /// 方法名
                 /// </summary>
-                public string DefName { get; set; }
+                public string DefName { get; set; } = string.Empty;
 
                 /// <summary>
                 /// 返回类型
                 /// </summary>
-                public string Type { get; set; }
+                public string Type { get; set; } = string.Empty;
 
                 /// <summary>
                 /// 备注
@@ -251,11 +251,11 @@ namespace AutoCode.DotTemplate.SourceGenerator
                     /// <summary>
                     /// 参数类型
                     /// </summary>
-                    public string Type { get; set; }
+                    public string Type { get; set; } = string.Empty;
                     /// <summary>
                     /// 参数名
                     /// </summary>
-                    public string DefName { get; set; }
+                    public string DefName { get; set; } = string.Empty;
 
                     public object ToLiquid()
                     {
@@ -276,17 +276,17 @@ namespace AutoCode.DotTemplate.SourceGenerator
                 /// <summary>
                 /// 修饰符号
                 /// </summary>
-                public string Modifier { get; set; }
+                public string Modifier { get; set; } = string.Empty;
 
                 /// <summary>
                 /// 字段名
                 /// </summary>
-                public string DefName { get; set; }
+                public string DefName { get; set; } = string.Empty;
 
                 /// <summary>
                 /// 类型
                 /// </summary>
-                public string Type { get; set; }
+                public string Type { get; set; } = string.Empty;
 
                 public object ToLiquid()
                 {
@@ -307,17 +307,17 @@ namespace AutoCode.DotTemplate.SourceGenerator
                 /// <summary>
                 /// 修饰符号
                 /// </summary>
-                public string Modifier { get; set; }
+                public string Modifier { get; set; } = string.Empty;
 
                 /// <summary>
                 /// 字段名
                 /// </summary>
-                public string DefName { get; set; }
+                public string DefName { get; set; } = string.Empty;
 
                 /// <summary>
                 /// 类型
                 /// </summary>
-                public string Type { get; set; }
+                public string Type { get; set; } = string.Empty;
 
                 public object ToLiquid()
                 {
@@ -334,7 +334,7 @@ namespace AutoCode.DotTemplate.SourceGenerator
                 /// <summary>
                 /// 名称
                 /// </summary>
-                public string DefName { get; set; }
+                public string DefName { get; set; } = string.Empty;
 
                 public object ToLiquid()
                 {
@@ -353,7 +353,7 @@ namespace AutoCode.DotTemplate.SourceGenerator
                 /// <summary>
                 /// 名称
                 /// </summary>
-                public string DefName { get; set; }
+                public string DefName { get; set; } = string.Empty;
 
                 public object ToLiquid()
                 {

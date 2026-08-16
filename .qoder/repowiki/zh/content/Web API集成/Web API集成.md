@@ -4,13 +4,7 @@
 **本文档引用的文件**
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
-- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
@@ -29,32 +23,23 @@
 - [launchSettings.json](file://src/APP.WebAPI/Properties/launchSettings.json)
 </cite>
 
-## 更新摘要
-**所做更改**
-- 新增AOP拦截器示例服务，展示OrderServiceV2、PaymentService和CustomInterceptHandlers的实际应用
-- 增强了Web API中AOP拦截器的完整工作流展示
-- 添加了订单处理和支付服务的AOP拦截实现示例
-- 扩展了依赖注入和服务注册的实际应用场景
-
 ## 目录
 1. [简介](#简介)
 2. [项目结构](#项目结构)
 3. [核心组件](#核心组件)
 4. [架构总览](#架构总览)
 5. [详细组件分析](#详细组件分析)
-6. [AOP拦截器集成](#aop拦截器集成)
-7. [依赖关系分析](#依赖关系分析)
-8. [性能考虑](#性能考虑)
-9. [故障排查指南](#故障排查指南)
-10. [结论](#结论)
-11. [附录](#附录)
+6. [依赖关系分析](#依赖关系分析)
+7. [性能考虑](#性能考虑)
+8. [故障排查指南](#故障排查指南)
+9. [结论](#结论)
+10. [附录](#附录)
 
 ## 简介
 本文件面向希望在ASP.NET Core Web API中集成AutoCode生成代码的开发者，系统阐述以下主题：
 - 依赖注入容器的配置与服务注册机制
 - 生命周期管理（Transient、Scoped、Singleton）
 - 在控制器与服务中使用AutoCode生成的接口与映射
-- AOP拦截器在Web API中的实际应用
 - 从接口定义到API端点实现的完整工作流
 - 中间件配置、异常处理与日志记录的最佳实践
 
@@ -62,11 +47,10 @@
 
 ## 项目结构
 本项目采用分层组织方式：
-- APP.WebAPI：Web API入口、控制器、服务、模型、启动配置与运行设置
+- APP.WebAPI：Web API入口、控制器、服务、启动配置与运行设置
 - APP.WebAPI.Core：应用核心能力，包含依赖注入扩展、应用初始化与生命周期标记接口
 - AutoCode相关模型与属性：用于驱动代码生成的元数据与特性
 - 映射模型与映射配置：行为定义与用户信息映射
-- **新增** AOP拦截器服务：订单处理、支付服务和自定义拦截器实现
 - 其他辅助模块：模板、测试、外部工具等
 
 ```mermaid
@@ -74,13 +58,7 @@ graph TB
 subgraph "Web API"
 Program["Program.cs"]
 Controller["BookingController.cs"]
-UserService["UserService.cs"]
-OrderServiceV2["OrderServiceV2.cs"]
-PaymentService["PaymentService.cs"]
-CustomInterceptors["CustomInterceptHandlers.cs"]
-UserDto["UserDto.cs"]
-UserEntity["UserEntity.cs"]
-Requests["Requests.cs"]
+Service["BookingService.cs"]
 Weather["WeatherForecast.cs"]
 Settings["appsettings.json"]
 Launch["launchSettings.json"]
@@ -105,15 +83,7 @@ Behavior["Behavior.cs"]
 UserInfo["UserInfo.cs"]
 end
 Program --> Controller
-Program --> UserService
-Program --> OrderServiceV2
-Program --> PaymentService
-Program --> CustomInterceptors
 Controller --> Service
-UserService --> UserDto
-UserService --> UserEntity
-OrderServiceV2 --> CustomInterceptors
-PaymentService --> CustomInterceptors
 Program --> DIExt
 Program --> SvcExt
 Program --> AppCore
@@ -126,13 +96,7 @@ Service --> UserInfo
 图表来源
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
-- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
@@ -153,13 +117,7 @@ Service --> UserInfo
 章节来源
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
-- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
@@ -182,8 +140,6 @@ Service --> UserInfo
 - 应用核心初始化：集中配置中间件、日志、异常处理等通用能力
 - 控制器与服务：业务入口与实现，使用AutoCode生成的接口与映射
 - AutoCode模型与特性：驱动代码生成的元数据，包括接口生成、忽略规则、映射策略等
-- **新增** AOP拦截器服务：订单处理、支付服务和自定义拦截器实现，展示AOP在Web API中的实际应用
-- **新增** 用户管理服务：完整的用户CRUD操作示例，展示AutoCode生态系统的实际应用
 
 章节来源
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
@@ -197,15 +153,9 @@ Service --> UserInfo
 - [AutoIgnoreAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoIgnoreAttribute.cs)
 - [MapperAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapperAttribute.cs)
 - [MapPropertyAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapPropertyAttribute.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
 
 ## 架构总览
-下图展示了从请求进入ASP.NET Core管道，到控制器调用服务，再到AutoCode生成代码参与映射与处理的整体流程，包括AOP拦截器的应用。
+下图展示了从请求进入ASP.NET Core管道，到控制器调用服务，再到AutoCode生成代码参与映射与处理的整体流程。
 
 ```mermaid
 sequenceDiagram
@@ -213,9 +163,7 @@ participant Client as "客户端"
 participant Kestrel as "Kestrel服务器"
 participant Middleware as "中间件管线"
 participant Controller as "BookingController"
-participant OrderService as "OrderServiceV2"
-participant PaymentService as "PaymentService"
-participant Interceptor as "CustomInterceptHandlers"
+participant Service as "BookingService"
 participant DI as "依赖注入容器"
 participant AutoGen as "AutoCode生成代码"
 Client->>Kestrel : HTTP请求
@@ -223,25 +171,17 @@ Kestrel->>Middleware : 进入中间件管线
 Middleware-->>Controller : 路由匹配后调用控制器
 Controller->>DI : 解析服务实例
 DI-->>Controller : 返回服务实例
-Controller->>OrderService : 调用订单处理方法
-OrderService->>Interceptor : AOP拦截器执行
-Interceptor-->>OrderService : 拦截处理完成
-OrderService->>AutoGen : 使用生成的接口/映射
-AutoGen-->>OrderService : 返回结果
-OrderService->>PaymentService : 调用支付服务
-PaymentService->>Interceptor : AOP拦截器执行
-Interceptor-->>PaymentService : 拦截处理完成
-PaymentService-->>OrderService : 支付结果
-OrderService-->>Controller : 业务结果
+Controller->>Service : 调用业务方法
+Service->>AutoGen : 使用生成的接口/映射
+AutoGen-->>Service : 返回结果
+Service-->>Controller : 业务结果
 Controller-->>Client : HTTP响应
 ```
 
 图表来源
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
@@ -339,78 +279,27 @@ Run --> End(["应用就绪"])
 sequenceDiagram
 participant C as "BookingController"
 participant S as "BookingService"
-participant U as "UserService"
 participant G as "AutoCode生成代码"
-C->>S : 调用预订业务方法(参数)
+C->>S : 调用业务方法(参数)
 S->>G : 使用生成的接口/映射
 G-->>S : 返回映射结果
 S-->>C : 业务结果
 C-->>C : 格式化响应
-U->>G : 用户数据映射
-G-->>U : 用户DTO转换
 ```
 
 图表来源
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [MapperAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapperAttribute.cs)
 - [MapPropertyAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapPropertyAttribute.cs)
 
 章节来源
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [MapperAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapperAttribute.cs)
 - [MapPropertyAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapPropertyAttribute.cs)
-
-### 用户管理功能完整示例
-**新增** 用户管理功能展示了AutoCode生态系统的完整应用：
-
-- 用户实体模型：
-  - UserEntity：数据库实体，包含用户基本信息
-  - UserDto：数据传输对象，用于API请求和响应
-  - Requests：请求模型，包含用户操作的输入参数
-- 用户服务实现：
-  - UserService：业务逻辑层，处理用户CRUD操作
-  - 使用AutoCode生成的映射进行实体与DTO之间的转换
-  - 集成依赖注入，支持生命周期管理
-
-```mermaid
-erDiagram
-USER_ENTITY {
-int id PK
-string username
-string email
-string password
-datetime created_at
-datetime updated_at
-}
-USER_DTO {
-int id
-string username
-string email
-}
-REQUESTS {
-int user_id
-string action
-object data
-}
-USER_ENTITY ||--o{ USER_DTO : "映射"
-USER_DTO ||--o{ REQUESTS : "处理"
-```
-
-图表来源
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
-
-章节来源
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
 
 ### 映射模型与AutoCode映射
 - 行为模型：
@@ -468,7 +357,7 @@ Endpoint --> Response["返回响应"]
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [AutoIgnoreAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoIgnoreAttribute.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
@@ -477,127 +366,20 @@ Endpoint --> Response["返回响应"]
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [AutoIgnoreAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoIgnoreAttribute.cs)
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
-
-## AOP拦截器集成
-
-### AOP拦截器服务架构
-**新增** AOP拦截器服务展示了AutoCode在Web API中的高级应用：
-
-- 订单服务（OrderServiceV2）：
-  - 演示AOP拦截器在订单处理中的应用
-  - 集成事务管理、日志记录和性能监控
-  - 使用AutoCode生成的接口和映射
-- 支付服务（PaymentService）：
-  - 展示支付流程中的AOP拦截器应用
-  - 集成安全验证、审计日志和错误处理
-  - 与订单服务协同工作
-- 自定义拦截器（CustomInterceptHandlers）：
-  - 实现通用的横切关注点处理
-  - 支持方法调用前后拦截
-  - 提供统一的异常处理和日志记录
-
-```mermaid
-classDiagram
-class OrderServiceV2 {
-+处理订单()
-+验证库存()
-+计算价格()
-+提交订单()
-}
-class PaymentService {
-+处理支付()
-+验证支付方式()
-+执行扣款()
-+生成收据()
-}
-class CustomInterceptHandlers {
-+方法前拦截()
-+方法后拦截()
-+异常处理()
-+日志记录()
-+性能监控()
-}
-class IInterceptHandler {
-+HandleAsync()
-+IsHandled()
-}
-OrderServiceV2 --> CustomInterceptHandlers : "AOP拦截"
-PaymentService --> CustomInterceptHandlers : "AOP拦截"
-CustomInterceptHandlers ..> IInterceptHandler : "实现接口"
-```
-
-图表来源
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-
-章节来源
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-
-### AOP拦截器工作流程
-**新增** AOP拦截器的工作流程展示了横切关注点的处理方式：
-
-```mermaid
-sequenceDiagram
-participant Client as "客户端"
-participant Controller as "控制器"
-participant OrderService as "OrderServiceV2"
-participant Interceptor as "CustomInterceptHandlers"
-participant PaymentService as "PaymentService"
-participant DB as "数据库"
-Client->>Controller : 发起订单请求
-Controller->>OrderService : 调用订单处理方法
-OrderService->>Interceptor : 进入AOP拦截器
-Interceptor->>Interceptor : 方法前处理(验证、日志)
-Interceptor->>OrderService : 执行业务逻辑
-OrderService->>PaymentService : 调用支付服务
-PaymentService->>Interceptor : 进入支付拦截器
-Interceptor->>Interceptor : 支付验证和安全检查
-Interceptor->>DB : 执行数据库操作
-DB-->>Interceptor : 返回结果
-Interceptor-->>PaymentService : 返回处理结果
-PaymentService-->>OrderService : 支付成功
-OrderService->>Interceptor : 方法后处理
-Interceptor->>Interceptor : 清理资源和记录日志
-Interceptor-->>OrderService : 返回最终结果
-OrderService-->>Controller : 订单处理完成
-Controller-->>Client : 返回响应
-```
-
-图表来源
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-
-章节来源
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
 
 ## 依赖关系分析
 - 控制器依赖服务，服务依赖AutoCode生成的接口与映射
 - 依赖注入容器负责生命周期管理与实例解析
 - 应用核心与扩展方法集中配置中间件与服务注册
-- **新增** AOP拦截器服务展示了横切关注点的统一处理
-- **新增** 用户管理功能展示了完整的实体-DTO-请求模型转换链
 
 ```mermaid
 graph LR
 Controller["BookingController"] --> Service["BookingService"]
-Controller --> UserService["UserService"]
-Controller --> OrderService["OrderServiceV2"]
-OrderService --> PaymentService["PaymentService"]
-OrderService --> CustomInterceptors["CustomInterceptHandlers"]
-PaymentService --> CustomInterceptors
 Service --> AutoGen["AutoCode生成代码"]
-UserService --> UserDto["UserDto"]
-UserService --> UserEntity["UserEntity"]
 Program["Program"] --> DIExt["依赖注入扩展"]
 Program --> SvcExt["服务集合扩展"]
 Program --> AppCore["应用核心"]
@@ -605,12 +387,7 @@ Program --> AppCore["应用核心"]
 
 图表来源
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
@@ -618,12 +395,7 @@ Program --> AppCore["应用核心"]
 
 章节来源
 - [BookingController.cs](file://src/APP.WebAPI/Controllers/BookingController.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
+- [BookingService.cs](file://src/APP.WebAPI/Services/BookingService.cs)
 - [Program.cs](file://src/APP.WebAPI/Program.cs)
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
 - [ServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/Application/Extensions/ServiceCollectionExtensions.cs)
@@ -639,14 +411,6 @@ Program --> AppCore["应用核心"]
 - 映射优化：
   - 使用AutoCode生成的映射减少反射开销
   - 缓存热点映射配置，避免重复计算
-- **新增** AOP拦截器性能优化：
-  - 拦截器使用轻量级设计，避免阻塞主流程
-  - 异步处理耗时操作，提升并发性能
-  - 合理的异常处理策略，减少性能损耗
-- **新增** 用户管理性能优化：
-  - DTO映射使用AutoCode生成的高性能转换器
-  - 数据库访问采用适当的查询策略
-  - 内存缓存热点用户数据
 
 [本节为通用指导，不直接分析具体文件]
 
@@ -660,14 +424,6 @@ Program --> AppCore["应用核心"]
 - 中间件问题：
   - 确认中间件注册顺序
   - 查看日志输出定位异常堆栈
-- **新增** AOP拦截器相关问题：
-  - 检查拦截器注册顺序和执行时机
-  - 确认拦截器异常处理逻辑
-  - 验证拦截器与业务逻辑的兼容性
-- **新增** 用户管理相关问题：
-  - 检查UserDto与UserEntity的字段映射配置
-  - 验证请求模型的验证规则
-  - 确认服务层的业务逻辑异常处理
 
 章节来源
 - [DependencyInjectionServiceCollectionExtensions.cs](file://src/APP.WebAPI.Core/DependencyInjection/DependencyInjectionServiceCollectionExtensions.cs)
@@ -675,15 +431,9 @@ Program --> AppCore["应用核心"]
 - [AppCore.cs](file://src/APP.WebAPI.Core/Application/AppCore.cs)
 - [AutoInterfaceAttribute.cs](file://src/AutoCode.Model/InterfaceAttribute/AutoInterfaceAttribute.cs)
 - [MapperAttribute.cs](file://src/AutoCode.Model/AutoMapperModel/MapperAttribute.cs)
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
 
 ## 结论
-通过AutoCode与ASP.NET Core Web API的集成，可以显著减少样板代码，提升开发效率与代码一致性。借助依赖注入的生命周期管理与中间件配置，能够构建出高内聚、低耦合、易维护的Web API服务。**新增的AOP拦截器服务**进一步展示了AutoCode生态系统的高级应用能力，从接口定义到API端点的完整工作流，包括横切关注点的统一处理。建议在实际项目中结合业务需求，合理设计接口与映射策略，并持续优化性能与稳定性。
+通过AutoCode与ASP.NET Core Web API的集成，可以显著减少样板代码，提升开发效率与代码一致性。借助依赖注入的生命周期管理与中间件配置，能够构建出高内聚、低耦合、易维护的Web API服务。建议在实际项目中结合业务需求，合理设计接口与映射策略，并持续优化性能与稳定性。
 
 [本节为总结性内容，不直接分析具体文件]
 
@@ -693,24 +443,8 @@ Program --> AppCore["应用核心"]
   - appsettings.json：应用配置项（数据库连接、日志级别等）
 - 示例数据模型：
   - WeatherForecast：示例天气数据模型，用于演示API返回格式
-- **新增** AOP拦截器示例：
-  - OrderServiceV2：订单服务示例，展示AOP拦截器的实际应用
-  - PaymentService：支付服务示例，演示复杂业务流程中的横切关注点处理
-  - CustomInterceptHandlers：自定义拦截器实现，提供统一的横切功能
-- **新增** 用户管理示例：
-  - UserEntity：用户实体模型，包含完整的用户信息字段
-  - UserDto：用户数据传输对象，用于API交互
-  - Requests：用户操作请求模型，支持多种用户管理操作
-  - UserService：用户服务实现，展示完整的CRUD操作
 
 章节来源
 - [launchSettings.json](file://src/APP.WebAPI/Properties/launchSettings.json)
 - [appsettings.json](file://src/APP.WebAPI/appsettings.json)
 - [WeatherForecast.cs](file://src/APP.WebAPI/WeatherForecast.cs)
-- [OrderServiceV2.cs](file://src/APP.WebAPI/Services/OrderServiceV2.cs)
-- [PaymentService.cs](file://src/APP.WebAPI/Services/PaymentService.cs)
-- [CustomInterceptHandlers.cs](file://src/APP.WebAPI/Services/CustomInterceptHandlers.cs)
-- [UserEntity.cs](file://src/APP.WebAPI/Models/UserEntity.cs)
-- [UserDto.cs](file://src/APP.WebAPI/Models/UserDto.cs)
-- [Requests.cs](file://src/APP.WebAPI/Models/Requests.cs)
-- [UserService.cs](file://src/APP.WebAPI/Services/UserService.cs)

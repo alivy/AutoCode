@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: 381c80a7-93c1-4fa8-aa13-fe99f761c94e
+title: AutoCode 模板与 Liquid 代码生成器
+scope:
+    - templates/
+source_files: []
+depends_on: []
+related_to: []

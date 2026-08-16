@@ -61,7 +61,7 @@ namespace AutoCode.Plugins.WebApi
                 .Where(static s => s != null)
                 .Combine(configProvider);
 
-            context.RegisterSourceOutput(controllerSources, static (spc, pair) =>
+            context.RegisterSourceOutput(AutoCode.Generators.V2Gate.Apply(context, controllerSources), static (spc, pair) =>
             {
                 var info = pair.Left!;
                 var config = pair.Right;

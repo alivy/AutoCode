@@ -10,7 +10,7 @@ namespace AutoCode.Model
         /// 可使用相对路径或者绝对路径
         /// 注意：在使用相对路径时，是相对当前特性标记.cs文件的相对路径，并非项目的相对路劲
         /// </summary>
-        public string DotFileName { get; set; }
+        public string DotFileName { get; set; } = string.Empty;
 
         /// <summary>
         /// 生成文件路径

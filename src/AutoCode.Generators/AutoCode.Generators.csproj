@@ -7,7 +7,18 @@
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<NoWarn>RS1035;RS1036;RS2008</NoWarn>
 		<Description>AutoCode 统一代码生成器 - 包含全部 11 个 IIncrementalGenerator（接口/映射/DTO/验证/Controller/DI/日志/测试/CRUD/级联/拦截）</Description>
+		<!-- 让 ProjectReference(OutputItemType="Analyzer") 的消费方同时加载依赖 DLL（AutoCode.Model/AutoCode.Engine/System.Text.Json 等），
+		     否则编译时生成器因找不到依赖程序集而静默失效（CS8785 FileNotFoundException） -->
+		<GetTargetPathDependsOn>$(GetTargetPathDependsOn);GetDependencyTargetPaths</GetTargetPathDependsOn>
 	</PropertyGroup>
+
+	<Target Name="GetDependencyTargetPaths">
+		<ItemGroup>
+			<TargetPathWithTargetPlatformMoniker Include="@(ReferenceCopyLocalPaths)"
+				IncludeRuntimeDependency="false"
+				Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll' and !$([System.String]::Copy('%(ReferenceCopyLocalPaths.FileName)').StartsWith('Microsoft.CodeAnalysis'))" />
+		</ItemGroup>
+	</Target>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0">

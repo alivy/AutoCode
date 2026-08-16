@@ -52,10 +52,12 @@ namespace AutoCode.Plugins.DependencyInjection
                 };
             });
 
-            var combined = registrations.Combine(configProvider);
+            var combined = registrations.Combine(configProvider).Combine(AutoCode.Generators.V2Gate.Enabled(context));
 
-            context.RegisterSourceOutput(combined, static (spc, pair) =>
+            context.RegisterSourceOutput(combined, static (spc, triple) =>
             {
+                if (!triple.Right) return; // V2 未启用
+                var pair = triple.Left;
                 var items = pair.Left.Where(r => r != null).Cast<ServiceRegistration>().ToList();
                 var config = pair.Right;
 

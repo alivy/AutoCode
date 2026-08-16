@@ -51,7 +51,7 @@ namespace AutoCode.Plugins.Dto
                 .Where(static s => s != null)
                 .Combine(configProvider);
 
-            context.RegisterSourceOutput(dtoSources, static (spc, pair) =>
+            context.RegisterSourceOutput(AutoCode.Generators.V2Gate.Apply(context, dtoSources), static (spc, pair) =>
             {
                 var info = pair.Left!;
                 var config = pair.Right;

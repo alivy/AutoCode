@@ -6,11 +6,11 @@
 		<DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
 		<!--打Nuget包信息-->
 		<PackageId>AM.AutoCode</PackageId>
-		<Version>1.2.0</Version>
+		<Version>2.3.0</Version>
 		<Company>AMiao</Company>
 		<Authors>AMiao</Authors>
 		<requireLicenseAcceptance>false</requireLicenseAcceptance>
-		<Description>自动代码生成扩展 - 包含接口生成器、模板生成器、对象映射生成器、DTO生成器、验证生成器、Controller生成器、DI注册生成器、代码分析器。编译时生成，零运行时反射，NativeAOT 兼容。</Description>
+		<Description>自动代码生成扩展 - 统一生成器（接口/映射/DTO/验证/Controller/DI/日志/测试/CRUD/级联/拦截）+ 分析器与代码修复。编译时生成，零运行时反射，NativeAOT 兼容。</Description>
 		<Summary>自动代码生成扩展</Summary>
 		<PackageTags>source-generator;roslyn;aot;trimming;code-generation;analyzer</PackageTags>
 		<copyright>Copyright © AMiao 2024</copyright>
@@ -42,19 +42,13 @@
 		<Folder Include="NugetPackage\lib\netstandard2.1\" />
 	</ItemGroup>
 
-	<!--生成前事件：仅在 Publish 配置时执行，发布所有生成器和模型到 NugetPackage 目录 -->
+	<!--生成前事件：仅在 Publish 配置时执行，发布统一生成器/分析器/模板生成器和模型到 NugetPackage 目录 -->
+	<!-- AutoCode.Generators 合并了全部 V1/V2 生成器，publish 输出自动携带 AutoCode.Model.dll / AutoCode.Engine.dll / System.Text.Json.dll 等依赖，
+	     保证分析器加载上下文能找到依赖程序集 -->
 	<Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)' == 'Publish'">
-		<Exec Command="dotnet publish ../AutoCodeGenerator/AutoCode.SourceGenerator.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
-		<Exec Command="dotnet publish ../AutoCode.XmlTemplate.SourceGenerator/AutoCode.DotTemplate.SourceGenerator.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
-		<Exec Command="dotnet publish ../AutoCode.Map/AutoCode.Map.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
+		<Exec Command="dotnet publish ../AutoCode.Generators/AutoCode.Generators.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.Analyzers/AutoCode.Analyzers.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
-		<Exec Command="dotnet publish ../AutoCode.DependencyInjection/AutoCode.DependencyInjection.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
-		<Exec Command="dotnet publish ../AutoCode.Dto/AutoCode.Dto.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
-		<Exec Command="dotnet publish ../AutoCode.Validation/AutoCode.Validation.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
-		<Exec Command="dotnet publish ../AutoCode.WebApi/AutoCode.WebApi.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
-		<Exec Command="dotnet publish ../AutoCode.Testing/AutoCode.Testing.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
-		<Exec Command="dotnet publish ../AutoCode.Logging/AutoCode.Logging.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
-		<Exec Command="dotnet publish ../AutoCode.Crud/AutoCode.Crud.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
+		<Exec Command="dotnet publish ../AutoCode.XmlTemplate.SourceGenerator/AutoCode.DotTemplate.SourceGenerator.csproj -c Release -o NugetPackage/analyzers/dotnet/cs" />
 		<Exec Command="dotnet publish ../AutoCode.Model/AutoCode.Model.csproj -c Release -o NugetPackage/lib/netstandard2.1" />
 	</Target>
 

@@ -50,7 +50,7 @@ namespace AutoCode.Plugins.Mapper
             var combined = mapperDeclarations.Combine(configProvider);
 
             // 注册输出
-            context.RegisterSourceOutput(combined, static (spc, pair) =>
+            context.RegisterSourceOutput(AutoCode.Generators.V2Gate.Apply(context, combined), static (spc, pair) =>
             {
                 var mappingInfo = pair.Left!;
                 var config = pair.Right;

@@ -1,9 +1,0 @@
-schema_version: 1
-module_path: samples
-title: AutoCode 示例画廊（编译时代码生成演示）
-scope:
-    - samples/
-source_files: []
-depends_on: []
-related_to:
-    - path: src

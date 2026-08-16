@@ -29,7 +29,7 @@ namespace AutoCode.Plugins.Logging
                     transform: static (ctx, ct) => ExtractLogInfo(ctx, ct))
                 .Where(static s => s != null);
 
-            context.RegisterSourceOutput(logSources, static (spc, info) =>
+            context.RegisterSourceOutput(AutoCode.Generators.V2Gate.Apply(context, logSources), static (spc, info) =>
             {
                 var output = GenerateDecorator(info!);
                 if (output != null)

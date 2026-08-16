@@ -14,6 +14,8 @@
   <ItemGroup>
     <!-- 暴露给 Source Generator 读取 -->
     <CompilerVisibleProperty Include="AutoCode_ConfigJson" />
+    <!-- V2 生成器启用开关（默认关闭仅运行 V1，避免 V1/V2 重复生成同一类型） -->
+    <CompilerVisibleProperty Include="AutoCode_EnableV2" />
     <!-- 模板文件作为 AdditionalFiles 传递给 CustomRecipeGenerator（位于仓库根目录 templates/） -->
     <AdditionalFiles Include="..\..\templates\*.liquid" />
   </ItemGroup>

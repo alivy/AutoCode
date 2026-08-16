@@ -32,7 +32,7 @@ namespace AutoCode.Plugins.Cascade
                 .Where(static s => s != null)
                 .SelectMany(static (config, _) => GenerateCascade(config!));
 
-            context.RegisterSourceOutput(cascadeSources, static (spc, file) =>
+            context.RegisterSourceOutput(AutoCode.Generators.V2Gate.Apply(context, cascadeSources), static (spc, file) =>
             {
                 spc.AddSource(file.FileName, SourceText.From(file.Content, Encoding.UTF8));
             });
