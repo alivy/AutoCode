@@ -28,10 +28,17 @@ namespace AutoCode.Analyzers.CodeFixes
             // 找到光标所在的方法
             var node = root.FindNode(context.Span);
             var methodDecl = node.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            if (methodDecl == null) return;
 
-            // 只处理 public 方法
-            if (!methodDecl.Modifiers.Any(SyntaxKind.PublicKeyword)) return;
+            // ═══ 类级别：光标不在 public 方法内时，在类上提供“批量生成 Handler” ═══
+            if (methodDecl == null || !methodDecl.Modifiers.Any(SyntaxKind.PublicKeyword))
+            {
+                var classDecl = node.AncestorsAndSelf().OfType<ClassDeclarationSyntax>().FirstOrDefault();
+                if (classDecl != null)
+                {
+                    await RegisterClassLevelHandlerRefactoringAsync(context, root, classDecl);
+                }
+                return;
+            }
 
             // 检查方法是否已有 [AutoIntercept] 或 [CustomIntercept] 特性
             var hasInterceptAttr = methodDecl.AttributeLists
@@ -325,6 +332,206 @@ namespace {ns}
                     return display.Substring(start + 1, end - start - 1);
             }
             return "object";
+        }
+
+        // ═══════════════ 类级别：批量生成 Handler ═══════════════
+
+        /// <summary>
+        /// 类级别重构：光标在类名上时，为全部 public 方法一键生成拦截 Handler。
+        /// </summary>
+        private static async Task RegisterClassLevelHandlerRefactoringAsync(
+            CodeRefactoringContext context, SyntaxNode root, ClassDeclarationSyntax classDecl)
+        {
+            var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
+            if (semanticModel == null) return;
+
+            var classSymbol = semanticModel.GetDeclaredSymbol(classDecl, context.CancellationToken);
+            if (classSymbol == null) return;
+
+            // 收集 public 实例方法（排除构造/属性/静态工具方法外的普通方法）
+            var publicMethods = classDecl.Members.OfType<MethodDeclarationSyntax>()
+                .Where(m => m.Modifiers.Any(SyntaxKind.PublicKeyword))
+                .ToList();
+
+            if (publicMethods.Count == 0) return;
+
+            var className = classSymbol.Name;
+            var ns = classSymbol.ContainingNamespace?.ToDisplayString() ?? "";
+
+            context.RegisterRefactoring(
+                CodeAction.Create(
+                    title: $"⚡ 为 {className} 的 {publicMethods.Count} 个 public 方法批量生成拦截 Handler",
+                    createChangedDocument: ct => GenerateAllHandlersAsync(
+                        context.Document, root, classDecl, classSymbol, ns, publicMethods, ct),
+                    equivalenceKey: $"GenerateAllHandlers_{className}"));
+        }
+
+        /// <summary>
+        /// 为类的所有 public 方法生成 Handler：
+        /// 逐方法添加 [AutoIntercept]+[CustomIntercept]，并追加全部 Handler 类到文档。
+        /// </summary>
+        private static async Task<Document> GenerateAllHandlersAsync(
+            Document document, SyntaxNode root, ClassDeclarationSyntax classDecl,
+            INamedTypeSymbol classSymbol, string ns,
+            List<MethodDeclarationSyntax> publicMethods, CancellationToken ct)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(ct).ConfigureAwait(false);
+            if (semanticModel == null) return document;
+
+            var className = classSymbol.Name;
+            var currentClassDecl = classDecl;
+            var handlerCodeBlocks = new List<string>();
+
+            foreach (var methodDecl in publicMethods)
+            {
+                var methodSymbol = semanticModel.GetDeclaredSymbol(methodDecl, ct);
+                if (methodSymbol == null) continue;
+
+                var methodName = methodSymbol.Name;
+                var argsName = $"{methodName}Args";
+                var returnType = GetReturnTypeDisplay(methodSymbol);
+                var handlerName = $"{methodName}Handler";
+                var paramDesc = string.Join(", ", methodSymbol.Parameters.Select(p =>
+                    $"{p.Type.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat)} {p.Name}"));
+
+                // 生成单个 Handler 类代码
+                handlerCodeBlocks.Add(BuildHandlerClassCode(ns, className, methodName,
+                    argsName, returnType, paramDesc, handlerName));
+
+                // 为方法添加 [AutoIntercept]（若无）+ [CustomIntercept(typeof(Handler))]
+                currentClassDecl = AddInterceptAttributesToMethod(currentClassDecl, methodDecl, handlerName);
+            }
+
+            // 替换类声明（含新增特性）
+            var newRoot = root.ReplaceNode(classDecl, currentClassDecl);
+
+            // 确保 using AutoCode.Model
+            newRoot = EnsureUsingForHandler(newRoot, "AutoCode.Model");
+
+            // 追加全部 Handler 类到 namespace
+            newRoot = AppendHandlerClasses(newRoot, ns, handlerCodeBlocks, ct);
+
+            return document.WithSyntaxRoot(newRoot);
+        }
+
+        /// <summary>构建单个 Handler 类代码（不含 namespace）。</summary>
+        private static string BuildHandlerClassCode(
+            string ns, string className, string methodName,
+            string argsName, string returnType, string paramDesc, string handlerName)
+        {
+            return $@"
+    /// <summary>
+    /// {className}.{methodName} 方法的拦截处理器。
+    /// 参数: ({paramDesc})
+    /// 返回值: {returnType}
+    /// 由 AutoCode 自动生成骨架，Args 类型 '{argsName}' 由编译时生成器自动产出。
+    /// </summary>
+    public class {handlerName} : MethodHandlerBase<{argsName}, {returnType}>
+    {{
+        public override void OnBefore({argsName} args, MethodContext ctx)
+        {{
+            // TODO: 前置逻辑
+        }}
+
+        public override void OnAfter({argsName} args, {returnType} result, MethodContext ctx)
+        {{
+            // TODO: 后置逻辑
+        }}
+
+        public override void OnException({argsName} args, Exception ex, MethodContext ctx)
+        {{
+            // TODO: 异常逻辑
+        }}
+    }}";
+        }
+
+        /// <summary>为指定方法添加 [AutoIntercept]（若无）和 [CustomIntercept(typeof(Handler))]。</summary>
+        private static ClassDeclarationSyntax AddInterceptAttributesToMethod(
+            ClassDeclarationSyntax classDecl, MethodDeclarationSyntax methodDecl, string handlerName)
+        {
+            var targetMethod = classDecl.Members.OfType<MethodDeclarationSyntax>()
+                .FirstOrDefault(m => m.Identifier.Text == methodDecl.Identifier.Text
+                    && m.ParameterList.Parameters.Count == methodDecl.ParameterList.Parameters.Count);
+            if (targetMethod == null) return classDecl;
+
+            var hasAutoIntercept = targetMethod.AttributeLists.SelectMany(a => a.Attributes)
+                .Any(a =>
+                {
+                    var name = a.Name is IdentifierNameSyntax id ? id.Identifier.Text : a.Name.ToString();
+                    return name is "AutoIntercept" or "AutoInterceptAttribute";
+                });
+
+            var newMethod = targetMethod;
+
+            if (!hasAutoIntercept)
+            {
+                var interceptAttr = SyntaxFactory.Attribute(
+                    SyntaxFactory.IdentifierName("AutoIntercept"),
+                    SyntaxFactory.AttributeArgumentList(
+                        SyntaxFactory.SingletonSeparatedList(
+                            SyntaxFactory.AttributeArgument(
+                                SyntaxFactory.ParseExpression("InterceptType.Log | InterceptType.Metrics")))));
+                newMethod = newMethod.AddAttributeLists(
+                    SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(interceptAttr))
+                        .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+            }
+
+            var customAttr = SyntaxFactory.Attribute(
+                SyntaxFactory.IdentifierName("CustomIntercept"),
+                SyntaxFactory.AttributeArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.AttributeArgument(
+                            SyntaxFactory.TypeOfExpression(SyntaxFactory.IdentifierName(handlerName))))));
+            newMethod = newMethod.AddAttributeLists(
+                SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(customAttr))
+                    .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+
+            return classDecl.ReplaceNode(targetMethod, newMethod);
+        }
+
+        /// <summary>将多个 Handler 类追加到目标 namespace。</summary>
+        private static SyntaxNode AppendHandlerClasses(
+            SyntaxNode root, string ns, List<string> handlerCodeBlocks, CancellationToken ct)
+        {
+            if (handlerCodeBlocks.Count == 0) return root;
+
+            var joined = string.Join("\n", handlerCodeBlocks);
+            var wrapped = $"namespace {ns}\n{{\n{joined}\n}}";
+            var parsed = CSharpSyntaxTree.ParseText(wrapped, cancellationToken: ct).GetRoot(ct)
+                as CompilationUnitSyntax;
+            if (parsed == null) return root;
+
+            var parsedNs = parsed.Members.OfType<NamespaceDeclarationSyntax>().FirstOrDefault();
+            if (parsedNs == null) return root;
+
+            if (root is CompilationUnitSyntax cu)
+            {
+                var existingNs = cu.Members.OfType<NamespaceDeclarationSyntax>()
+                    .FirstOrDefault(n => n.Name.ToString() == parsedNs.Name.ToString());
+                if (existingNs != null)
+                {
+                    var newNs = existingNs.AddMembers(parsedNs.Members.ToArray());
+                    return cu.ReplaceNode(existingNs, newNs);
+                }
+                return cu.AddMembers(parsedNs.WithLeadingTrivia(SyntaxFactory.CarriageReturnLineFeed));
+            }
+            return root;
+        }
+
+        /// <summary>确保 using 存在。</summary>
+        private static SyntaxNode EnsureUsingForHandler(SyntaxNode root, string ns)
+        {
+            if (root is CompilationUnitSyntax cu)
+            {
+                var hasUsing = cu.Usings.Any(u => u.Name?.ToString() == ns);
+                if (!hasUsing)
+                {
+                    var usingDirective = SyntaxFactory.UsingDirective(SyntaxFactory.ParseName(ns))
+                        .WithTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed);
+                    return cu.AddUsings(usingDirective);
+                }
+            }
+            return root;
         }
     }
 }
