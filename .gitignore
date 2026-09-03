@@ -268,3 +268,6 @@ obj
 /src/AutoCode.Extensions.SourceGenerator/NugetPackage/lib/netstandard2.1/AutoCode.Model.deps.json
 /src/AutoCode.Extensions.SourceGenerator/NugetPackage/lib/netstandard2.1/AutoCode.Model.dll
 /src/AutoCode.Extensions.SourceGenerator/NugetPackage/lib/netstandard2.1/AutoCode.Model.pdb
+
+# superpowers git worktrees
+.worktrees/
