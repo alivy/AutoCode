@@ -1,4 +1,5 @@
 {
+  "$schema": "./autocode.schema.json",
   "conventions": {
     "servicePattern": "*Service",
     "repositoryPattern": "*Repository",

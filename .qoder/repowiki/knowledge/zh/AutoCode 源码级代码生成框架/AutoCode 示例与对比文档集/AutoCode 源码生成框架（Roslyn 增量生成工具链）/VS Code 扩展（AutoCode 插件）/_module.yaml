@@ -1,0 +1,9 @@
+schema_version: 1
+module_path: 34204c70-be08-4cf1-962c-ad189b6c8386/6771afac-ee92-4e4c-bcb9-458f319de820/4c736788-1a50-4730-970c-77bf45af6edd
+title: VS Code 扩展（AutoCode 插件）
+scope:
+    - tools/
+source_files: []
+depends_on: []
+related_to:
+    - path: 34204c70-be08-4cf1-962c-ad189b6c8386/6771afac-ee92-4e4c-bcb9-458f319de820/2cbbf2cc-86d7-4f30-8831-4269f3b3d7d8

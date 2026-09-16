@@ -11,9 +11,22 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="xunit" Version="2.7.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
+    <PackageReference Include="Verify.Xunit" Version="29.0.0" />
+    <!-- xunit 2.9.3：与 Verify.Xunit 29 的 extensibility 依赖对齐 -->
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
+    <!-- Intercept 生成代码的二次编译验证依赖（IMemoryCache/ILogger/IServiceCollection/Meter） -->
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="8.0.0" />
+    <!-- Controller/Crud/Cascade 生成代码的二次编译验证依赖（ControllerBase 等） -->
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <!-- Crud/Cascade 生成仓储依赖 EF Core；Testing 生成物 using Moq -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="8.0.1" />
   </ItemGroup>
 
   <ItemGroup>

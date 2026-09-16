@@ -123,6 +123,19 @@ namespace AutoCode.Plugins.Validation
                     m.Returns("bool");
                     m.ExpressionBody("Validate(input).IsValid");
                 });
+
+                // Email 检查调用的辅助方法（曾缺失导致生成代码 CS0103）
+                c.Method("IsValidEmail", m =>
+                {
+                    m.Private().Static();
+                    m.Parameter("string", "email");
+                    m.Returns("bool");
+                    m.Body(b =>
+                    {
+                        b.Line("if (string.IsNullOrWhiteSpace(email)) return false;");
+                        b.Line("return Regex.IsMatch(email, @\"^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$\", RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));");
+                    });
+                });
             });
 
             return new ValidatorOutput

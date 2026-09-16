@@ -289,12 +289,17 @@ namespace AutoCode.Intercept
 
             foreach (var m in methods)
             {
-                if (excludeMethods.Contains(m.Name)) continue;
-
                 // 方法级模式：只拦截有标记的方法，其余透传
                 InterceptFlags methodFlags;
                 bool isPassthrough = false;
-                if (isMethodLevelMode)
+                if (excludeMethods.Contains(m.Name))
+                {
+                    // [SkipIntercept]：不拦截，但仍需生成透传实现。
+                    // 直接 continue 会导致装饰器缺失接口成员（CS0535 编译错误）。
+                    isPassthrough = true;
+                    methodFlags = InterceptFlags.None;
+                }
+                else if (isMethodLevelMode)
                 {
                     if (!methodOverrides.ContainsKey(m.Name) && !methodCustomHandlers.ContainsKey(m.Name))
                     {

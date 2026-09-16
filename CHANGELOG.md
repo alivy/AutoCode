@@ -2,6 +2,34 @@
 
 本文档记录 AutoCode 的所有重要变更。格式遵循 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [未发布]
+
+### 新增
+
+- **快照测试体系**：`AutoCode.Tests.V2` 引入 Verify.Xunit + `GeneratorTestBase` 基建（快照锁定生成物全文本 + 生成代码二次编译零错误断言），覆盖全部 11 个生成器共 15 个场景；CI 集成 `DiffEngine_Disabled`
+- **autocode.schema.json**：autocode.json 的完整 JSON Schema（编辑器智能提示/校验），根配置已接入 `$schema` 引用
+- **llms.txt + AGENTS.md**：AI 编程助手的机器可读项目文档与仓库约定
+- **ADR 0001**（docs/adr/）：Engine 管线体系退役决策（v3.0 执行）
+
+### 修复（生成代码编译错误——全部由新增的快照测试 + 二次编译断言首次捕获）
+
+- **V2 DtoGenerator**：`FromEntity` 对象初始化器语法错误（CS1526）；缺 `using System.Linq` 导致 `Select` 未解析（CS1061）
+- **V2 ValidationGenerator**：Email 检查调用的 `IsValidEmail` 辅助方法从未生成（CS0103）
+- **V2 ControllerGenerator / CrudGenerator / CascadeGenerator**：生成的 Controller 未继承 `ControllerBase`，`Ok()`/`NotFound()`/`StatusCode()` 等全部 CS0103
+- **V2 CrudGenerator / CascadeGenerator**：async Action 返回类型未包 `Task<>`（CS1983）；`[FromBody]` 因 `MethodBuilder.Parameter` 3/4 参重载歧义被错误绑定为参数默认值（CS0103），改用命名参数 `attribute:`
+- **V2 CascadeGenerator**：级联 DTO 的 `FromEntity` 同款初始化器语法错误（CS1526/CS1002/CS1513）
+- **V1 InterceptGenerator**：`[SkipIntercept]` 方法未生成透传实现，装饰器缺失接口成员（CS0535）；语义修正为"不拦截但透传"
+- **V2 InterfaceGenerator**：类型显示改用 nullable 感知格式，修复 `Task<string?>`→`Task<string>`、事件 `Action?`→`Action` 的可空注解丢失；泛型方法约束（`where T : class` 等）不再被丢弃
+
+### 性能
+
+- **V2 InterfaceGenerator 增量缓存修复**：管道模型从可变 class 改为 record + ImmutableEquatableArray（值相等），无关代码变更不再触发接口重新生成；新增增量缓存哨兵测试（`InterfaceGeneratorCachingTests`，无关变更下断言全部步骤 Cached/Unchanged）
+
+### 测试
+
+- 测试总数 58 → 74（新增 15 个快照场景 + 1 个增量缓存哨兵）
+- V1 `SkipIntercept_ExcludesMethod` 更名为 `SkipIntercept_GeneratesPassthrough`，断言语义修正
+
 ## [2.3.1] - 2026-08-16
 
 ### 修复

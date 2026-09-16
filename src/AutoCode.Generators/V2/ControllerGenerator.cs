@@ -172,6 +172,8 @@ namespace AutoCode.Plugins.WebApi
             writer.Class(controllerName, c =>
             {
                 c.Public();
+                // 必须继承 ControllerBase：Ok()/StatusCode() 等 Helper 定义于其上
+                c.Inherits("ControllerBase");
                 c.Attribute("ApiController");
                 c.Attribute($"Route(\"{route}\")");
                 c.Attribute("Produces(\"application/json\")");

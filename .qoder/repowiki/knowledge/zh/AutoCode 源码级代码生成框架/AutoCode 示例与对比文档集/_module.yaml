@@ -1,0 +1,8 @@
+schema_version: 1
+module_path: 34204c70-be08-4cf1-962c-ad189b6c8386
+title: AutoCode 示例与对比文档集
+scope:
+    - samples/
+source_files: []
+depends_on: []
+related_to: []

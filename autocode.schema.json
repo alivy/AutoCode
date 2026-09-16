@@ -1,0 +1,181 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/xljiulang/AutoCode/main/autocode.schema.json",
+  "title": "AutoCode 配置",
+  "description": "AutoCode 编译时代码生成框架的项目级配置（autocode.json）。配置键为 camelCase，解析器宽松忽略未知节点。",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema 引用（编辑器智能提示用，生成器忽略）"
+    },
+    "conventions": {
+      "type": "object",
+      "description": "约定推断：按命名模式自动发现类型（无需特性标记）",
+      "properties": {
+        "servicePattern": { "type": "string", "default": "*Service", "description": "Service 类名匹配模式（支持 * 通配）" },
+        "repositoryPattern": { "type": "string", "default": "*Repository", "description": "Repository 类名匹配模式" },
+        "dtoSuffix": { "type": "string", "default": "Dto", "description": "DTO 类名后缀" },
+        "autoDetectServices": { "type": "boolean", "default": true, "description": "自动发现 Service 类" },
+        "autoDetectDtos": { "type": "boolean", "default": true, "description": "自动发现 DTO 类" },
+        "autoDetectRepositories": { "type": "boolean", "default": true, "description": "自动发现 Repository 类" },
+        "autoDetectControllers": { "type": "boolean", "default": false, "description": "自动发现 Controller 类" }
+      },
+      "additionalProperties": true
+    },
+    "mapper": {
+      "type": "object",
+      "description": "[MapFrom] 映射生成器配置",
+      "properties": {
+        "methodName": { "type": "string", "default": "MapTo", "description": "生成的映射扩展方法名" },
+        "nullHandling": { "type": "string", "enum": ["Skip", "Assign", "Throw"], "default": "Skip", "description": "源属性为 null 时的处理策略" },
+        "collectionMapping": { "type": "string", "enum": ["DeepCopy", "Reference"], "default": "DeepCopy", "description": "集合属性映射方式" },
+        "generateProjection": { "type": "boolean", "default": false, "description": "是否生成 IQueryable 投影表达式" }
+      },
+      "additionalProperties": true
+    },
+    "dto": {
+      "type": "object",
+      "description": "[AutoDTO] DTO 生成器配置",
+      "properties": {
+        "useRecord": { "type": "boolean", "default": false, "description": "生成 record 而非 class" },
+        "excludeAuditFields": { "type": "boolean", "default": true, "description": "自动排除审计字段（CreatedAt/ModifiedAt 等）" }
+      },
+      "additionalProperties": true
+    },
+    "webapi": {
+      "type": "object",
+      "description": "[AutoController] WebAPI 生成器配置",
+      "properties": {
+        "responseWrapper": { "type": "boolean", "default": true, "description": "生成统一响应包装（ApiResponse<T>）" },
+        "pagination": { "type": "boolean", "default": true, "description": "列表接口自动生成分页参数" },
+        "versioning": { "type": "string", "enum": ["UrlSegment", "QueryString", "Header", "None"], "default": "UrlSegment", "description": "API 版本策略" },
+        "version": { "type": "string", "default": "", "description": "API 版本号（如 v1），空为不启用" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "description": "[AutoValidator] 验证生成器配置",
+      "properties": {
+        "generateFluentStyle": { "type": "boolean", "default": false, "description": "生成 FluentValidation 风格链式 API" },
+        "enableAsyncValidation": { "type": "boolean", "default": false, "description": "生成异步验证方法（ValidateAsync）" }
+      },
+      "additionalProperties": true
+    },
+    "dependencyInjection": {
+      "type": "object",
+      "description": "编译时 DI 注册生成器配置（IScoped/ISingleton/ITransient）",
+      "properties": {
+        "namespace": { "type": "string", "default": "AutoCode.DependencyInjection", "description": "生成的 DI 扩展类命名空间" },
+        "methodName": { "type": "string", "default": "AddAutoDI", "description": "生成的注册扩展方法名" },
+        "modulePerAssembly": { "type": "boolean", "default": false, "description": "按程序集分别生成注册模块" }
+      },
+      "additionalProperties": true
+    },
+    "cascade": {
+      "type": "object",
+      "description": "[AutoEntity] 级联生成配置：一个实体触发全链路，逐项可关",
+      "properties": {
+        "dto": { "type": "boolean", "default": true, "description": "级联生成 DTO" },
+        "mapper": { "type": "boolean", "default": true, "description": "级联生成映射" },
+        "validation": { "type": "boolean", "default": true, "description": "级联生成验证器" },
+        "repository": { "type": "boolean", "default": true, "description": "级联生成仓储" },
+        "service": { "type": "boolean", "default": true, "description": "级联生成 Service" },
+        "controller": { "type": "boolean", "default": true, "description": "级联生成 Controller" },
+        "tests": { "type": "boolean", "default": false, "description": "级联生成测试桩" },
+        "logging": { "type": "boolean", "default": false, "description": "级联生成日志装饰器" }
+      },
+      "additionalProperties": true
+    },
+    "logging": {
+      "type": "object",
+      "description": "[AutoLog] 日志装饰器配置",
+      "properties": {
+        "structuredLogging": { "type": "boolean", "default": true, "description": "使用结构化日志模板（{Placeholder}）" },
+        "includeOpenTelemetry": { "type": "boolean", "default": false, "description": "生成 OpenTelemetry Activity 埋点" },
+        "maskSensitive": { "type": "boolean", "default": true, "description": "敏感参数自动脱敏（Password/Token 等）" }
+      },
+      "additionalProperties": true
+    },
+    "intercept": {
+      "type": "object",
+      "description": "[AutoIntercept] 编译时 AOP 拦截器默认值",
+      "properties": {
+        "defaultInterceptors": { "type": "string", "default": "Log,Metrics", "description": "默认启用的拦截器（逗号分隔，如 Log,Cache,Retry）" },
+        "cacheDurationSeconds": { "type": "integer", "default": 300, "minimum": 1, "description": "Cache 拦截器默认缓存时长（秒）" },
+        "maxRetryCount": { "type": "integer", "default": 3, "minimum": 1, "description": "Retry 拦截器最大重试次数" },
+        "retryBaseDelayMs": { "type": "integer", "default": 100, "minimum": 0, "description": "Retry 指数退避基础延迟（毫秒）" },
+        "circuitFailureThreshold": { "type": "integer", "default": 5, "minimum": 1, "description": "CircuitBreaker 连续失败熔断阈值" },
+        "circuitBreakDurationSeconds": { "type": "integer", "default": 30, "minimum": 1, "description": "CircuitBreaker 熔断时长（秒）" }
+      },
+      "additionalProperties": true
+    },
+    "plugins": {
+      "type": "object",
+      "description": "插件级启停开关（键为插件名，任一插件可设 enabled=false 停用）",
+      "properties": {
+        "interface": { "$ref": "#/$defs/pluginSwitch" },
+        "mapper": { "$ref": "#/$defs/pluginSwitch" },
+        "dto": { "$ref": "#/$defs/pluginSwitch" },
+        "validation": { "$ref": "#/$defs/pluginSwitch" },
+        "webapi": { "$ref": "#/$defs/pluginSwitch" },
+        "crud": { "$ref": "#/$defs/pluginSwitch" },
+        "dependencyInjection": { "$ref": "#/$defs/pluginSwitch" },
+        "testing": { "$ref": "#/$defs/pluginSwitch" },
+        "logging": { "$ref": "#/$defs/pluginSwitch" },
+        "cascade": { "$ref": "#/$defs/pluginSwitch" },
+        "intercept": { "$ref": "#/$defs/pluginSwitch" }
+      },
+      "additionalProperties": { "$ref": "#/$defs/pluginSwitch" }
+    },
+    "customGenerators": {
+      "type": "array",
+      "description": "自定义代码生成配方（V2.3+）：声明式定义生成规则，无需编写 Source Generator",
+      "items": { "$ref": "#/$defs/customGenerator" }
+    }
+  },
+  "additionalProperties": true,
+  "$defs": {
+    "pluginSwitch": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true, "description": "是否启用该插件" }
+      },
+      "additionalProperties": true
+    },
+    "customGenerator": {
+      "type": "object",
+      "required": ["name", "output"],
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "description": "配方唯一标识（如 auditService），[CustomGenerate(\"name\")] 可精准触发" },
+        "title": { "type": "string", "description": "Ctrl+. 显示文本（如 添加审计日志服务）" },
+        "icon": { "type": "string", "default": "⚙️", "description": "Ctrl+. 图标前缀" },
+        "category": { "type": "string", "enum": ["Custom", "Entity", "Service", "Dto"], "default": "Custom", "description": "Ctrl+. 分组" },
+        "trigger": {
+          "type": "object",
+          "description": "触发条件（多条件为 AND 关系）",
+          "properties": {
+            "attributeName": { "type": "string", "description": "匹配的 Attribute 名（不含 Attribute 后缀），如 AutoAudit" },
+            "classPattern": { "type": "string", "description": "类名通配模式，如 *Service" },
+            "requiredInterfaces": { "type": "array", "items": { "type": "string" }, "description": "要求类实现的接口名列表" },
+            "requiredProperties": { "type": "array", "items": { "type": "string" }, "description": "要求类包含的属性名列表" },
+            "requiredMethods": { "type": "array", "items": { "type": "string" }, "description": "要求类包含的方法名列表" }
+          },
+          "additionalProperties": false
+        },
+        "output": {
+          "type": "object",
+          "required": ["template"],
+          "properties": {
+            "template": { "type": "string", "minLength": 1, "description": "Liquid 模板文件路径（相对项目根），如 templates/AuditService.liquid" },
+            "fileName": { "type": "string", "default": "{ClassName}{RecipeName}.g.cs", "description": "生成文件名模式，占位符：{ClassName}、{RecipeName}" },
+            "namespace": { "type": "string", "default": "{SourceNamespace}.Generated", "description": "生成代码命名空间，占位符：{SourceNamespace}" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

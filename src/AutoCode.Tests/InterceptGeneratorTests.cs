@@ -219,7 +219,7 @@ namespace AutoCode.Tests
         }
 
         [Fact]
-        public void SkipIntercept_ExcludesMethod()
+        public void SkipIntercept_GeneratesPassthrough()
         {
             var source = """
                 using AutoCode.Model;
@@ -242,7 +242,11 @@ namespace AutoCode.Tests
             var generated = string.Join("\n", trees.Select(t => t.ToString()));
 
             Assert.Contains("Included", generated);
-            Assert.DoesNotContain("Excluded", generated);
+            // [SkipIntercept] 不拦截，但必须生成透传实现，否则装饰器缺失接口成员（CS0535）
+            Assert.Contains("void Excluded()", generated);
+            Assert.Contains("_inner.Excluded()", generated);
+            // 透传方法不携带拦截逻辑（"Xxx 开始" 日志只属于被拦截方法）
+            Assert.DoesNotContain("Excluded 开始", generated);
         }
 
         [Fact]

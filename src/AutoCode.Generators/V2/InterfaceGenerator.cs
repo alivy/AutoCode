@@ -7,13 +7,15 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using AutoCode.Engine.CodeBuilder;
+using AutoCode.Map.Helpers;
 
 namespace AutoCode.Plugins.Interface
 {
     /// <summary>
     /// 接口生成器 v2 - 从类自动提取公共接口。
-    /// 增强：partial class、record struct、泛型方法、事件成员、XML 文档继承、
+    /// 增强：partial class、record struct、泛型方法（含约束）、事件成员、XML 文档继承、
     /// 自定义接口名、多接口、[AutoIgnore] 排除、Async 感知、Nullable 感知。
+    /// 增量缓存：全部管道模型为 record + ImmutableEquatableArray（值相等），无关变更不触发生成。
     /// </summary>
     [Generator]
     public class InterfaceGenerator : IIncrementalGenerator
@@ -86,16 +88,21 @@ namespace AutoCode.Plugins.Interface
                 {
                     Kind = MemberKind.Method,
                     Name = method.Name,
-                    ReturnType = method.ReturnType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    ReturnType = method.ReturnType.ToDisplayString(NullableAwareFormat),
                     IsAsync = IsAsyncReturn(method.ReturnType),
-                    TypeParameters = method.TypeParameters.Select(tp => tp.Name).ToList(),
+                    TypeParameters = method.TypeParameters.Select(tp => tp.Name).ToImmutableEquatableArray(),
+                    Constraints = method.TypeParameters
+                        .Select(FormatTypeParameterConstraints)
+                        .Where(c => c != null)
+                        .Select(c => c!)
+                        .ToImmutableEquatableArray(),
                     Parameters = method.Parameters.Select(p => new ParamInfo
                     {
                         Name = p.Name,
-                        Type = p.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                        Type = p.Type.ToDisplayString(NullableAwareFormat),
                         HasDefault = p.HasExplicitDefaultValue,
                         DefaultValue = p.HasExplicitDefaultValue ? FormatDefault(p.ExplicitDefaultValue) : null
-                    }).ToList(),
+                    }).ToImmutableEquatableArray(),
                     XmlDoc = GetXmlDoc(method)
                 });
             }
@@ -114,7 +121,7 @@ namespace AutoCode.Plugins.Interface
                 {
                     Kind = MemberKind.Property,
                     Name = prop.Name,
-                    ReturnType = prop.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat),
+                    ReturnType = prop.Type.ToDisplayString(NullableAwareFormat),
                     HasGetter = prop.GetMethod != null,
                     HasSetter = prop.SetMethod != null,
                     XmlDoc = GetXmlDoc(prop)
@@ -133,7 +140,7 @@ namespace AutoCode.Plugins.Interface
                 {
                     Kind = MemberKind.Event,
                     Name = evt.Name,
-                    ReturnType = evt.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)
+                    ReturnType = evt.Type.ToDisplayString(NullableAwareFormat)
                 });
             }
 
@@ -142,7 +149,7 @@ namespace AutoCode.Plugins.Interface
                 ClassName = classSymbol.Name,
                 Namespace = classSymbol.ContainingNamespace?.ToDisplayString() ?? "",
                 CustomInterfaceName = customName,
-                Members = members
+                Members = members.ToImmutableEquatableArray()
             };
         }
 
@@ -196,6 +203,10 @@ namespace AutoCode.Plugins.Interface
                 if (member.TypeParameters.Count > 0)
                     m.TypeParameter(member.TypeParameters.ToArray());
 
+                // 泛型约束（where T : class 等，曾丢失）
+                foreach (var constraint in member.Constraints)
+                    m.Constraint(constraint);
+
                 m.Returns(member.ReturnType);
 
                 foreach (var param in member.Parameters)
@@ -215,6 +226,33 @@ namespace AutoCode.Plugins.Interface
                 if (!member.HasGetter) p.WriteOnly();
                 if (!member.HasSetter) p.ReadOnly();
             });
+        }
+
+        /// <summary>
+        /// nullable 感知的类型显示格式（保留 string? / Task<T?> 注解）。
+        /// 勿回退为裸 FullyQualifiedFormat——会丢可空注解（历史 CS8603 类事故）。
+        /// </summary>
+        private static readonly SymbolDisplayFormat NullableAwareFormat =
+            SymbolDisplayFormat.FullyQualifiedFormat.WithMiscellaneousOptions(
+                SymbolDisplayFormat.FullyQualifiedFormat.MiscellaneousOptions
+                | SymbolDisplayMiscellaneousOptions.IncludeNullableReferenceTypeModifier);
+
+        /// <summary>格式化泛型约束（where T : class / struct / unmanaged / notnull / 类型约束 / new()），无约束返回 null。</summary>
+        private static string? FormatTypeParameterConstraints(ITypeParameterSymbol tp)
+        {
+            var parts = new List<string>();
+            if (tp.HasReferenceTypeConstraint)
+                parts.Add(tp.ReferenceTypeConstraintNullableAnnotation == NullableAnnotation.Annotated ? "class?" : "class");
+            if (tp.HasUnmanagedTypeConstraint)
+                parts.Add("unmanaged");
+            else if (tp.HasValueTypeConstraint)
+                parts.Add("struct");
+            if (tp.HasNotNullConstraint)
+                parts.Add("notnull");
+            parts.AddRange(tp.ConstraintTypes.Select(t => t.ToDisplayString(NullableAwareFormat)));
+            if (tp.HasConstructorConstraint)
+                parts.Add("new()");
+            return parts.Count == 0 ? null : $"where {tp.Name} : {string.Join(", ", parts)}";
         }
 
         private static bool HasIgnoreAttribute(ISymbol symbol)
@@ -260,40 +298,48 @@ namespace AutoCode.Plugins.Interface
 
     #region Models
 
-    internal sealed class InterfaceInfo
+    // ═══ 增量缓存友好模型：record（值相等）+ ImmutableEquatableArray（序列相等）═══
+    // 符号对象（INamedTypeSymbol 等）不允许流入模型——它们无值相等性，会使增量缓存整体失效。
+
+    internal sealed record InterfaceInfo
     {
-        public string ClassName { get; set; } = "";
-        public string Namespace { get; set; } = "";
-        public string? CustomInterfaceName { get; set; }
-        public List<InterfaceMemberInfo> Members { get; set; } = new List<InterfaceMemberInfo>();
+        public string ClassName { get; init; } = "";
+        public string Namespace { get; init; } = "";
+        public string? CustomInterfaceName { get; init; }
+        public AutoCode.Map.Helpers.ImmutableEquatableArray<InterfaceMemberInfo> Members { get; init; }
+            = AutoCode.Map.Helpers.ImmutableEquatableArray<InterfaceMemberInfo>.Empty;
     }
 
-    internal sealed class InterfaceMemberInfo
+    internal sealed record InterfaceMemberInfo
     {
-        public MemberKind Kind { get; set; }
-        public string Name { get; set; } = "";
-        public string ReturnType { get; set; } = "";
-        public bool IsAsync { get; set; }
-        public bool HasGetter { get; set; } = true;
-        public bool HasSetter { get; set; } = true;
-        public List<string> TypeParameters { get; set; } = new List<string>();
-        public List<ParamInfo> Parameters { get; set; } = new List<ParamInfo>();
-        public string? XmlDoc { get; set; }
+        public MemberKind Kind { get; init; }
+        public string Name { get; init; } = "";
+        public string ReturnType { get; init; } = "";
+        public bool IsAsync { get; init; }
+        public bool HasGetter { get; init; } = true;
+        public bool HasSetter { get; init; } = true;
+        public AutoCode.Map.Helpers.ImmutableEquatableArray<string> TypeParameters { get; init; }
+            = AutoCode.Map.Helpers.ImmutableEquatableArray<string>.Empty;
+        public AutoCode.Map.Helpers.ImmutableEquatableArray<string> Constraints { get; init; }
+            = AutoCode.Map.Helpers.ImmutableEquatableArray<string>.Empty;
+        public AutoCode.Map.Helpers.ImmutableEquatableArray<ParamInfo> Parameters { get; init; }
+            = AutoCode.Map.Helpers.ImmutableEquatableArray<ParamInfo>.Empty;
+        public string? XmlDoc { get; init; }
     }
 
-    internal sealed class ParamInfo
+    internal sealed record ParamInfo
     {
-        public string Name { get; set; } = "";
-        public string Type { get; set; } = "";
-        public bool HasDefault { get; set; }
-        public string? DefaultValue { get; set; }
+        public string Name { get; init; } = "";
+        public string Type { get; init; } = "";
+        public bool HasDefault { get; init; }
+        public string? DefaultValue { get; init; }
     }
 
     internal enum MemberKind { Method, Property, Event }
 
-    internal sealed class InterfaceConfig
+    internal sealed record InterfaceConfig
     {
-        public string Prefix { get; set; } = "I";
+        public string Prefix { get; init; } = "I";
     }
 
     internal sealed class InterfaceOutput

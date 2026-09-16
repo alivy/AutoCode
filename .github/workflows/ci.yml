@@ -25,6 +25,9 @@ jobs:
       run: dotnet build src/AutoCode.sln --no-restore --configuration Release
 
     - name: Test
+      # DiffEngine_Disabled：CI 无桌面环境，禁止 Verify 快照失败时尝试启动 diff 工具
+      env:
+        DiffEngine_Disabled: "true"
       run: dotnet test src/AutoCode.sln --no-build --configuration Release --verbosity normal
 
   pack:

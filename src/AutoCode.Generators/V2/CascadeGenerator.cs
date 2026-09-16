@@ -194,11 +194,12 @@ namespace AutoCode.Plugins.Cascade
                     m.Returns(dtoName);
                     m.Body(b =>
                     {
-                        b.Return($"new {dtoName}");
+                        // 同 DtoGenerator：不能用 b.Return("new X")（会补分号截断初始化器），用 Line 输出完整语句
+                        b.Line($"return new {dtoName}");
                         b.Line("{");
                         foreach (var prop in dtoProps)
                             b.Line($"    {prop.Name} = entity.{prop.Name},");
-                        b.Line("}");
+                        b.Line("};");
                     });
                 });
 
@@ -404,6 +405,8 @@ namespace AutoCode.Plugins.Cascade
             w.Class($"{c.EntityName}sController", cls =>
             {
                 cls.Public();
+                // 必须继承 ControllerBase：Ok()/NotFound()/CreatedAtAction() 等 Helper 定义于其上
+                cls.Inherits("ControllerBase");
                 cls.Attribute("ApiController");
                 cls.Attribute($"Route(\"{c.RoutePrefix}\")");
                 cls.Attribute("Produces(\"application/json\")");
@@ -412,25 +415,26 @@ namespace AutoCode.Plugins.Cascade
                 cls.Field("_service", f => f.Private().ReadOnly().Type($"I{c.EntityName}Service"));
                 cls.Constructor(ctor => ctor.AssignField($"I{c.EntityName}Service", "service", "_service"));
 
+                // async 方法返回类型必须包 Task（否则 CS1983）；FromBody 需带方括号走特性注解重载（否则生成为默认值，CS0103）
                 cls.Method("GetAll", m => m.Public().Async().Attribute("HttpGet")
-                    .Returns($"ActionResult<List<{c.EntityName}Dto>>")
+                    .Returns($"Task<ActionResult<List<{c.EntityName}Dto>>>")
                     .Body(b => b.Return("Ok(await _service.GetAllAsync())")));
 
                 cls.Method("GetById", m => m.Public().Async().Attribute("HttpGet(\"{id}\")")
-                    .Parameter(c.KeyType, "id").Returns($"ActionResult<{c.EntityName}Dto>")
+                    .Parameter(c.KeyType, "id").Returns($"Task<ActionResult<{c.EntityName}Dto>>")
                     .Body(b => { b.Var("r", "await _service.GetByIdAsync(id)"); b.Return("r == null ? NotFound() : Ok(r)"); }));
 
                 cls.Method("Create", m => m.Public().Async().Attribute("HttpPost")
-                    .Parameter($"{c.EntityName}Dto", "dto", "FromBody").Returns($"ActionResult<{c.EntityName}Dto>")
+                    .Parameter($"{c.EntityName}Dto", "dto", attribute: "[FromBody]").Returns($"Task<ActionResult<{c.EntityName}Dto>>")
                     .Body(b => { b.Var("r", "await _service.CreateAsync(dto)"); b.Return("CreatedAtAction(nameof(GetById), new { id = r.Id }, r)"); }));
 
                 cls.Method("Update", m => m.Public().Async().Attribute("HttpPut(\"{id}\")")
-                    .Parameter(c.KeyType, "id").Parameter($"{c.EntityName}Dto", "dto", "FromBody")
-                    .Returns($"ActionResult<{c.EntityName}Dto>")
+                    .Parameter(c.KeyType, "id").Parameter($"{c.EntityName}Dto", "dto", attribute: "[FromBody]")
+                    .Returns($"Task<ActionResult<{c.EntityName}Dto>>")
                     .Body(b => { b.Var("r", "await _service.UpdateAsync(id, dto)"); b.Return("r == null ? NotFound() : Ok(r)"); }));
 
                 cls.Method("Delete", m => m.Public().Async().Attribute("HttpDelete(\"{id}\")")
-                    .Parameter(c.KeyType, "id").Returns("IActionResult")
+                    .Parameter(c.KeyType, "id").Returns("Task<IActionResult>")
                     .Body(b => b.Return("await _service.DeleteAsync(id) ? NoContent() : NotFound()")));
             });
 

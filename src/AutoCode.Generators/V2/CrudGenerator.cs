@@ -369,6 +369,8 @@ namespace AutoCode.Plugins.Crud
             w.Class($"{e.Name}sController", c =>
             {
                 c.Public();
+                // 必须继承 ControllerBase：Ok()/NotFound()/CreatedAtAction() 等 Helper 定义于其上
+                c.Inherits("ControllerBase");
                 c.Attribute("ApiController");
                 c.Attribute($"Route(\"{e.RoutePrefix}\")");
                 c.Attribute("Produces(\"application/json\")");
@@ -381,7 +383,8 @@ namespace AutoCode.Plugins.Crud
                 c.Method("GetAll", m => m.Public().Async()
                     .Attribute("HttpGet")
                     .Attribute($"ProducesResponseType(typeof(List<{e.Name}>), 200)")
-                    .Returns($"ActionResult<List<{e.Name}>>")
+                    // async 方法返回类型必须包 Task（否则 CS1983）
+                    .Returns($"Task<ActionResult<List<{e.Name}>>>")
                     .Body(b => b.Return("Ok(await _service.GetAllAsync())")));
 
                 // GET by id
@@ -390,7 +393,7 @@ namespace AutoCode.Plugins.Crud
                     .Attribute($"ProducesResponseType(typeof({e.Name}), 200)")
                     .Attribute("ProducesResponseType(404)")
                     .Parameter(e.KeyType, "id")
-                    .Returns($"ActionResult<{e.Name}>")
+                    .Returns($"Task<ActionResult<{e.Name}>>")
                     .Body(b =>
                     {
                         b.Var("result", "await _service.GetByIdAsync(id)");
@@ -402,7 +405,7 @@ namespace AutoCode.Plugins.Crud
                     .Attribute("HttpGet(\"paged\")")
                     .Parameter("int", "page", "1")
                     .Parameter("int", "pageSize", "20")
-                    .Returns("ActionResult")
+                    .Returns("Task<ActionResult>")
                     .Body(b =>
                     {
                         b.Var("(items, total)", "await _service.GetPagedAsync(page, pageSize)");
@@ -413,8 +416,10 @@ namespace AutoCode.Plugins.Crud
                 c.Method("Create", m => m.Public().Async()
                     .Attribute("HttpPost")
                     .Attribute($"ProducesResponseType(typeof({e.Name}), 201)")
-                    .Parameter(e.Name, "entity", "FromBody")
-                    .Returns($"ActionResult<{e.Name}>")
+                    // 必须用命名参数 attribute:——3 参重载 (type,name,defaultValue) 与 4 参重载歧义，
+                    // 直接传 "[FromBody]" 会被绑定为默认值（生成为 = [FromBody]）
+                    .Parameter(e.Name, "entity", attribute: "[FromBody]")
+                    .Returns($"Task<ActionResult<{e.Name}>>")
                     .Body(b =>
                     {
                         b.Var("result", "await _service.CreateAsync(entity)");
@@ -427,8 +432,8 @@ namespace AutoCode.Plugins.Crud
                     .Attribute($"ProducesResponseType(typeof({e.Name}), 200)")
                     .Attribute("ProducesResponseType(404)")
                     .Parameter(e.KeyType, "id")
-                    .Parameter(e.Name, "entity", "FromBody")
-                    .Returns($"ActionResult<{e.Name}>")
+                    .Parameter(e.Name, "entity", attribute: "[FromBody]")
+                    .Returns($"Task<ActionResult<{e.Name}>>")
                     .Body(b =>
                     {
                         b.Var("result", "await _service.UpdateAsync(id, entity)");
@@ -441,7 +446,7 @@ namespace AutoCode.Plugins.Crud
                     .Attribute("ProducesResponseType(204)")
                     .Attribute("ProducesResponseType(404)")
                     .Parameter(e.KeyType, "id")
-                    .Returns("IActionResult")
+                    .Returns("Task<IActionResult>")
                     .Body(b => b.Return("await _service.DeleteAsync(id) ? NoContent() : NotFound()")));
             });
 

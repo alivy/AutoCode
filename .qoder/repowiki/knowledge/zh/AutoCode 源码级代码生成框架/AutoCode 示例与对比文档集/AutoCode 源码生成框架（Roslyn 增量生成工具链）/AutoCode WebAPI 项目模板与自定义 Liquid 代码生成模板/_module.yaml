@@ -1,0 +1,10 @@
+schema_version: 1
+module_path: 34204c70-be08-4cf1-962c-ad189b6c8386/6771afac-ee92-4e4c-bcb9-458f319de820/941ede02-0bfc-498b-84b5-5948965aa683
+title: AutoCode WebAPI 项目模板与自定义 Liquid 代码生成模板
+scope:
+    - templates/
+source_files: []
+depends_on: []
+related_to:
+    - path: 34204c70-be08-4cf1-962c-ad189b6c8386/6771afac-ee92-4e4c-bcb9-458f319de820/2cbbf2cc-86d7-4f30-8831-4269f3b3d7d8
+    - path: 34204c70-be08-4cf1-962c-ad189b6c8386/6771afac-ee92-4e4c-bcb9-458f319de820/986824fd-cdc9-457d-919a-b5204e18d0d7
